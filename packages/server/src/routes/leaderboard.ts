@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { sql } from "drizzle-orm";
-import { LeaderboardQuerySchema } from "@3d-pong/shared";
-import type { LeaderboardRow } from "@3d-pong/shared";
+import { LeaderboardQuerySchema } from "@3d-space-pong/shared";
+import type { LeaderboardRow } from "@3d-space-pong/shared";
 import { rawSqlite } from "../db/client.js";
 
 interface RawRow {

@@ -1,4 +1,4 @@
-import type { LeaderboardRow } from "@3d-pong/shared";
+import type { LeaderboardRow } from "@3d-space-pong/shared";
 import { api } from "../api.js";
 import { go } from "../router.js";
 import { quips } from "../content/quips.js";

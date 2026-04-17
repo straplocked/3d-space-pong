@@ -1,5 +1,5 @@
-import { SignUpSchema, DIFFICULTIES } from "@3d-pong/shared";
-import type { Difficulty } from "@3d-pong/shared";
+import { SignUpSchema, DIFFICULTIES } from "@3d-space-pong/shared";
+import type { Difficulty } from "@3d-space-pong/shared";
 import { api, ApiError } from "../api.js";
 import { DIFFICULTY_PROFILES } from "../game/AI.js";
 import { go } from "../router.js";

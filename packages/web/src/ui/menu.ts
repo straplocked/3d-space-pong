@@ -15,7 +15,7 @@ export function renderMenu(root: HTMLElement): void {
         <span class="audio-icon" aria-hidden="true">${audioOn ? "♪" : "×"}</span>
         <span class="audio-label">SOUND: ${audioOn ? "ON" : "OFF"}</span>
       </button>
-      <h1>3D PONG</h1>
+      <h1>3D SPACE PONG</h1>
       <p class="tagline">A pong game that keeps receipts.</p>
       <button class="btn" data-action="ai">Fight The Machine</button>
       <button class="btn" data-action="2p">Betray a Friend</button>

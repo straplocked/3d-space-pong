@@ -1,4 +1,4 @@
-import type { Difficulty } from "@3d-pong/shared";
+import type { Difficulty } from "@3d-space-pong/shared";
 
 export interface DifficultyProfile {
   level: Difficulty;

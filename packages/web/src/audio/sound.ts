@@ -12,7 +12,7 @@
  * Enabled state persists in localStorage so mute survives reloads.
  */
 
-const STORAGE_KEY = "3d-pong:audio";
+const STORAGE_KEY = "3d-space-pong:audio";
 const MASTER_VOLUME = 0.18;
 
 type Ctx = AudioContext & {

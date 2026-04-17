@@ -1,4 +1,4 @@
-import type { Difficulty } from "@3d-pong/shared";
+import type { Difficulty } from "@3d-space-pong/shared";
 import { DIFFICULTY_PROFILES } from "../game/AI.js";
 
 export interface HudHandle {

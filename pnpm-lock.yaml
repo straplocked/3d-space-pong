@@ -14,7 +14,7 @@ importers:
 
   packages/server:
     dependencies:
-      '@3d-pong/shared':
+      '@3d-space-pong/shared':
         specifier: workspace:*
         version: link:../shared
       '@fastify/cors':
@@ -70,7 +70,7 @@ importers:
 
   packages/web:
     dependencies:
-      '@3d-pong/shared':
+      '@3d-space-pong/shared':
         specifier: workspace:*
         version: link:../shared
       parallax-js:

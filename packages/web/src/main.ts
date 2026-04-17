@@ -1,5 +1,5 @@
 import "./styles.css";
-import { DIFFICULTIES, type Difficulty } from "@3d-pong/shared";
+import { DIFFICULTIES, type Difficulty } from "@3d-space-pong/shared";
 import { initParallax } from "./ui/parallax.js";
 import { defineRoute, defineNotFound, startRouter, go } from "./router.js";
 import { renderMenu } from "./ui/menu.js";

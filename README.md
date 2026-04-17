@@ -1,8 +1,8 @@
-# 3D Pong
+# 3D Space Pong
 
-> A 3D Pong game that keeps receipts.
+> A 3D Space Pong game that keeps receipts.
 
-Open-source 3D Pong, built with [three.js](https://threejs.org/) for the game and [parallax.js](https://matthew.wagerfield.com/parallax/) for the layered background. One-page web app, 1P vs AI (5 difficulty levels) or 2P local. Tracks every match against the computer — wins **and** losses — in a Hall of Fame *and* a Hall of Shame.
+Open-source 3D Space Pong, built with [three.js](https://threejs.org/) for the game and [parallax.js](https://matthew.wagerfield.com/parallax/) for the layered background. One-page web app, 1P vs AI (5 difficulty levels) or 2P local. Tracks every match against the computer — wins **and** losses — in a Hall of Fame *and* a Hall of Shame.
 
 ## Features
 
@@ -28,7 +28,7 @@ Open-source 3D Pong, built with [three.js](https://threejs.org/) for the game an
 ## Project layout
 
 ```
-3d-pong/
+3d-space-pong/
 ├── packages/
 │   ├── shared/   # zod schemas + types shared by client and server
 │   ├── server/   # Fastify API + Drizzle ORM + SQLite migrations
@@ -85,7 +85,7 @@ Then open **http://<your-server>:3000**. The SQLite file is persisted in `./data
 
 ### Unraid
 
-1. Clone this repo to a folder on your server (e.g. `/mnt/user/appdata/3d-pong`).
+1. Clone this repo to a folder on your server (e.g. `/mnt/user/appdata/3d-space-pong`).
 2. From that folder, run `docker compose up -d --build`.
 3. Map host port `3000` (or whatever you prefer) and bind-mount `./data` to keep the database between container restarts.
 4. Optionally put it behind your reverse proxy of choice.
@@ -111,7 +111,7 @@ Postgres support is wired into the schema layer but not yet bundled — open an 
 | POST   | `/api/matches`                                                 | Record a 1P-vs-AI match result   |
 | GET    | `/api/leaderboard?sort=wins\|losses\|ratio\|shortest_loss\|rookie_victims&difficulty=...&limit=20` | The Hall of Fame, Shame, and everything in between |
 
-All POST bodies are validated with Zod schemas from `@3d-pong/shared`.
+All POST bodies are validated with Zod schemas from `@3d-space-pong/shared`.
 
 ## Controls
 

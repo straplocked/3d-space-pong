@@ -11,7 +11,7 @@
  * arming the dismiss listeners so the navigation that landed us here
  * doesn't immediately bounce us out.
  */
-import type { LeaderboardRow } from "@3d-pong/shared";
+import type { LeaderboardRow } from "@3d-space-pong/shared";
 import { api } from "../api.js";
 import { PongGame } from "../game/PongGame.js";
 import { quips } from "../content/quips.js";
@@ -72,8 +72,8 @@ export function startAttract(opts: {
     teardownDemo();
     root.innerHTML = `
       <section class="attract-title">
-        <div class="attract-window-chrome">● ● ●  ~/3d-pong — attract mode</div>
-        <h1 class="attract-logo">3D&nbsp;PONG</h1>
+        <div class="attract-window-chrome">● ● ●  ~/3d-space-pong — attract mode</div>
+        <h1 class="attract-logo">3D&nbsp;SPACE&nbsp;PONG</h1>
         <p class="attract-sub">// a pong game that keeps receipts</p>
         <p class="attract-press">PRESS ANY KEY TO START</p>
         <p class="attract-controls">KEYBOARD · MOUSE · TOUCH</p>

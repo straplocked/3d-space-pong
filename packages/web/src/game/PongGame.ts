@@ -3,7 +3,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import type { Difficulty } from "@3d-pong/shared";
+import type { Difficulty } from "@3d-space-pong/shared";
 
 import { Input } from "./Input.js";
 import { AIController } from "./AI.js";

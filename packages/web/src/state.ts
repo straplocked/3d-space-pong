@@ -8,7 +8,7 @@ export interface CurrentUser {
   displayName: string;
 }
 
-const KEY = "3d-pong:user";
+const KEY = "3d-space-pong:user";
 
 export function getCurrentUser(): CurrentUser | null {
   try {

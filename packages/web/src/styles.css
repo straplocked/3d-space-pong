@@ -1,5 +1,5 @@
 /* =============================================================
-   3D PONG — Matrix / Cyberpunk / Tech-Terminal UI
+   3D SPACE PONG — Matrix / Cyberpunk / Tech-Terminal UI
    -------------------------------------------------------------
    Palette:
      --bg-0:       #000500 (void)
@@ -710,7 +710,7 @@ body::after {
 
 /* Mock "window chrome" bar */
 .card::before {
-  content: "● ● ●  ~/3d-pong — 80x24";
+  content: "● ● ●  ~/3d-space-pong — 80x24";
   position: absolute;
   top: 0;
   left: 0;

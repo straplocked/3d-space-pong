@@ -1,4 +1,4 @@
-import type { Difficulty } from "@3d-pong/shared";
+import type { Difficulty } from "@3d-space-pong/shared";
 import { pickGameOverQuip } from "../content/quips.js";
 import { go } from "../router.js";
 

@@ -21,8 +21,8 @@ import {
   type PongGame,
 } from "../game/PongGame.js";
 
-const STORAGE_KEY = "3d-pong:gfx-settings";
-const VISIBLE_KEY = "3d-pong:gfx-visible";
+const STORAGE_KEY = "3d-space-pong:gfx-settings";
+const VISIBLE_KEY = "3d-space-pong:gfx-visible";
 
 interface ControlDef {
   key: keyof GfxSettings;

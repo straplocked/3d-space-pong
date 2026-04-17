@@ -21,9 +21,9 @@ COPY tsconfig.base.json ./
 COPY packages/shared ./packages/shared
 COPY packages/server ./packages/server
 COPY packages/web ./packages/web
-RUN pnpm --filter @3d-pong/shared run build \
- && pnpm --filter @3d-pong/web run build \
- && pnpm --filter @3d-pong/server run build
+RUN pnpm --filter @3d-space-pong/shared run build \
+ && pnpm --filter @3d-space-pong/web run build \
+ && pnpm --filter @3d-space-pong/server run build
 
 # ----- Runtime image (slim) -----
 FROM node:20-alpine AS runtime
@@ -43,7 +43,7 @@ COPY package.json pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/server/package.json ./packages/server/
 COPY packages/web/package.json ./packages/web/
-RUN pnpm install --prod --frozen-lockfile=false --filter @3d-pong/server...
+RUN pnpm install --prod --frozen-lockfile=false --filter @3d-space-pong/server...
 
 # Copy compiled shared, compiled server, and built web bundle.
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist

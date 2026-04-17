@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
-import { SignUpSchema } from "@3d-pong/shared";
+import { SignUpSchema } from "@3d-space-pong/shared";
 import { db } from "../db/client.js";
 import { users } from "../db/schema.js";
 

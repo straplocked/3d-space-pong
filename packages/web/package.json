@@ -1,5 +1,5 @@
 {
-  "name": "@3d-pong/web",
+  "name": "@3d-space-pong/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@3d-pong/shared": "workspace:*",
+    "@3d-space-pong/shared": "workspace:*",
     "parallax-js": "^3.1.0",
     "three": "^0.169.0",
     "zod": "^3.23.8"

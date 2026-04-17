@@ -1,8 +1,8 @@
 services:
   app:
     build: .
-    image: 3d-pong:latest
-    container_name: 3d-pong
+    image: 3d-space-pong:latest
+    container_name: 3d-space-pong
     ports:
       - "3000:3000"
     volumes:

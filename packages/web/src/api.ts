@@ -5,7 +5,7 @@ import type {
   LeaderboardRow,
   LeaderboardSort,
   Difficulty,
-} from "@3d-pong/shared";
+} from "@3d-space-pong/shared";
 
 const API_BASE = "/api";
 
