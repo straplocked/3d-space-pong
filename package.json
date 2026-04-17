@@ -1,0 +1,21 @@
+{
+  "name": "3d-pong",
+  "version": "0.1.0",
+  "private": true,
+  "description": "3D Pong that keeps receipts. Built with three.js + parallax.js.",
+  "license": "MIT",
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter @3d-pong/shared run build && pnpm -r --parallel --filter=@3d-pong/web --filter=@3d-pong/server run dev",
+    "build": "pnpm --filter @3d-pong/shared run build && pnpm --filter @3d-pong/server run build && pnpm --filter @3d-pong/web run build",
+    "typecheck": "pnpm -r run typecheck",
+    "db:generate": "pnpm --filter @3d-pong/server run db:generate",
+    "db:migrate": "pnpm --filter @3d-pong/server run db:migrate"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

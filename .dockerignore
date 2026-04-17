@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+**/dist
+**/.vite
+**/*.log
+.git
+.gitignore
+data
+pgdata
+*.db
+*.sqlite
+.env
+.env.local
+README.md

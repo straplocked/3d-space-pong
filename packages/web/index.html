@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#000500" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>3D Pong — Keeps Receipts</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <!-- Parallax background, present on every screen, behind everything else -->
+    <ul id="parallax-bg" class="parallax-bg">
+      <li data-depth="0.05"><div class="layer layer-1"></div></li>
+      <li data-depth="0.08">
+        <div class="layer layer-celestial">
+          <div class="nebula"></div>
+          <div class="planet"></div>
+        </div>
+      </li>
+      <li data-depth="0.15"><div class="layer layer-2"></div></li>
+      <li data-depth="0.22">
+        <div class="layer layer-asteroids">
+          <div class="asteroid asteroid-1"></div>
+          <div class="asteroid asteroid-2"></div>
+          <div class="asteroid asteroid-3"></div>
+          <div class="asteroid asteroid-4"></div>
+          <div class="asteroid asteroid-5"></div>
+        </div>
+      </li>
+      <li data-depth="0.3"><div class="layer layer-3"></div></li>
+      <li data-depth="0.4">
+        <div class="layer layer-comets">
+          <div class="comet-track comet-1"><div class="comet"></div></div>
+          <div class="comet-track comet-2"><div class="comet"></div></div>
+          <div class="comet-track comet-3"><div class="comet"></div></div>
+        </div>
+      </li>
+      <li data-depth="0.5"><div class="layer layer-4"></div></li>
+    </ul>
+
+    <!-- Three.js canvas (only mounted during gameplay) -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- App root for menu / signup / leaderboard / game-over screens -->
+    <main id="app" class="screen-root"></main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
