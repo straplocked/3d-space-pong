@@ -15,6 +15,31 @@ Open-source 3D Space Pong, built with [three.js](https://threejs.org/) for the g
 - 🗄️ **SQLite by default** — zero-config, single file, runs anywhere
 - 🛠️ **Drizzle ORM** — type-safe schema, swappable to Postgres later
 
+## Screenshots
+
+Captured from a real headless-Chromium run of the built app (server serving the built web bundle), in both light and dark `prefers-color-scheme`. The game currently renders the same fixed dark neon theme either way — it doesn't read `prefers-color-scheme` yet — so the light/dark pairs below look identical on purpose; that's a known gap, not a capture bug.
+
+| Menu | Attract mode (demo) |
+| --- | --- |
+| ![Menu](docs/assets/screenshots/menu-light.png) | ![Attract mode](docs/assets/screenshots/attract-light.png) |
+
+| Gameplay (2P local) | Hall of Shame |
+| --- | --- |
+| ![Gameplay](docs/assets/screenshots/gameplay-2p-light.png) | ![Leaderboard](docs/assets/screenshots/leaderboard-light.png) |
+
+More PNGs (including the `-dark` variants) live under [`docs/assets/screenshots/`](docs/assets/screenshots/). Regenerate them with [`scripts/screenshots.mjs`](scripts/screenshots.mjs):
+
+```bash
+# with the app already running at BASE_URL
+docker run --rm --network host \
+  -v "$PWD/scripts:/work/scripts:ro" \
+  -v "$PWD/docs/assets/screenshots:/out" \
+  -w /work \
+  mcr.microsoft.com/playwright:v1.55.0-noble \
+  bash -c "npm init -y >/dev/null && npm install --no-save playwright@1.55.0 >/dev/null && \
+    node /work/scripts/screenshots.mjs --base-url=http://localhost:3000 --out-dir=/out"
+```
+
 ## Tech stack
 
 | Layer       | What                                |
@@ -38,14 +63,14 @@ Open-source 3D Space Pong, built with [three.js](https://threejs.org/) for the g
 └── README.md
 ```
 
-## Local development
+## Run locally
 
 ### Requirements
 
 - Node.js 20+
 - pnpm 9+ (`corepack enable && corepack prepare pnpm@9.0.0 --activate`)
 
-### Install and run
+### Option A: dev mode (recommended)
 
 ```bash
 pnpm install
@@ -57,7 +82,20 @@ This starts:
 - Vite dev server on **http://localhost:5173** (the front-end)
 - Fastify API on **http://localhost:3000** (the back-end)
 
-Vite proxies `/api/*` to the API, so the front-end always talks to `/api/...` regardless of the environment.
+Vite proxies `/api/*` to the API, so the front-end always talks to `/api/...` regardless of the environment. `pnpm dev` runs the server with `tsx`, straight from `src/`, so migrations run automatically against `packages/server/src/db/migrations` on every start.
+
+### Option B: build once, run the compiled server
+
+```bash
+pnpm install
+pnpm build
+pnpm --filter @3d-space-pong/server run db:migrate   # see note below
+node packages/server/dist/index.js
+```
+
+The single Fastify server then serves both `/api/*` and the built web bundle on `http://localhost:3000`.
+
+> **Known gap:** `pnpm build` (via `tsc`) does not copy the raw `.sql` migration files into `packages/server/dist/db/migrations`. The Docker image works around this with an explicit `COPY` step (see [`Dockerfile`](Dockerfile)), but a plain local `pnpm build && node dist/index.js` will silently skip migrations and 500 on first API call ("no such table: ..."). Run `pnpm --filter @3d-space-pong/server run db:migrate` first (it runs against `src/db/migrations`, so it always finds the SQL) to work around it until the build script copies the migrations folder itself.
 
 ### Hitting the dev server from another machine
 
@@ -65,7 +103,7 @@ Vite is configured with `host: true`, so it binds to `0.0.0.0`. From another dev
 
 ### Database
 
-A fresh SQLite database is created automatically at `packages/server/data/pong.db` on first run. Migrations live in `packages/server/src/db/migrations` and are applied on startup.
+A fresh SQLite database is created automatically (parent directories included) at the path in `DB_URL` — `packages/server/data/pong.db` by default — on first run.
 
 To regenerate migrations after changing `schema.ts`:
 
