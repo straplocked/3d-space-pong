@@ -177,6 +177,11 @@ export class PongGame {
   private onScoreChange: (left: number, right: number) => void;
   private onPauseRequested: () => void;
   private resizeHandler: () => void;
+  private contextLostHandler: (e: Event) => void;
+  /** While paused, only redraw when something changed (resize, GFX
+   *  tweak) — the canvas keeps its last frame, and re-running bloom at
+   *  60 fps behind a pause dialog just drains a phone's battery. */
+  private needsRender = true;
 
   constructor(opts: {
     canvas: HTMLCanvasElement;
@@ -271,7 +276,22 @@ export class PongGame {
 
     this.resizeHandler = () => this.handleResize();
     window.addEventListener("resize", this.resizeHandler);
+
+    // Mobile GPUs drop WebGL contexts under memory pressure or when the
+    // app is backgrounded. preventDefault() tells the browser we want it
+    // restored (three.js re-initialises on restore); meanwhile, ask the
+    // app to pause so the ball doesn't keep moving on a frozen screen.
+    this.contextLostHandler = (e: Event) => {
+      e.preventDefault();
+      if (this.mode.kind !== "demo") this.onPauseRequested();
+    };
+    opts.canvas.addEventListener("webglcontextlost", this.contextLostHandler);
+    opts.canvas.addEventListener("webglcontextrestored", this.markDirty);
   }
+
+  private markDirty = () => {
+    this.needsRender = true;
+  };
 
   private buildArena(): void {
     // === ARENA IN SPACE ===
@@ -699,6 +719,7 @@ export class PongGame {
     this.composer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this.needsRender = true;
   }
 
   /** Start the game and resolve when one side reaches SCORE_TO_WIN, or
@@ -738,6 +759,7 @@ export class PongGame {
     if (!this.running || this.paused) return;
     this.paused = true;
     this.pausedAt = performance.now();
+    this.needsRender = true;
   }
 
   resume(): void {
@@ -774,7 +796,10 @@ export class PongGame {
     // While paused, just keep rendering the current frame (no physics,
     // no input polling for movement, no dt accumulation).
     if (this.paused) {
-      this.composer.render();
+      if (this.needsRender) {
+        this.composer.render();
+        this.needsRender = false;
+      }
       return;
     }
 
@@ -1113,6 +1138,7 @@ export class PongGame {
     if (this.ballMat) {
       this.ballMat.emissiveIntensity = next.ballEmissive;
     }
+    this.needsRender = true;
   }
 
   /** Read-only snapshot of the current graphics settings. */
@@ -1134,6 +1160,14 @@ export class PongGame {
     this.renderer.setAnimationLoop(null);
     this.input.detach();
     window.removeEventListener("resize", this.resizeHandler);
+    this.renderer.domElement.removeEventListener(
+      "webglcontextlost",
+      this.contextLostHandler,
+    );
+    this.renderer.domElement.removeEventListener(
+      "webglcontextrestored",
+      this.markDirty,
+    );
     this.composer.dispose();
     this.renderer.dispose();
     this.scene.traverse((obj) => {

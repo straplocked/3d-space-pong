@@ -10,7 +10,7 @@
 - **Humor everywhere, but decoupled from code.** All player-facing flavor text lives in one file (`quips.ts`). Non-engineers can contribute lines without touching game logic.
 - **Zero operational complexity.** Single container, embedded SQLite, single-file database. No external services required.
 - **Self-hostable in minutes** on any machine that runs Docker — including Unraid and hobbyist NAS boxes. Designed to be run by one person for their friends.
-- **Mobile-aware.** Touch controls map finger position to paddle position 1:1. Fullscreen + landscape lock on supported browsers; a rotate-prompt overlay fills in where the API isn't.
+- **Mobile-aware.** Touch controls map finger position to paddle position 1:1. Landscape enforced app-wide on phones (lock where the browser allows, a rotate overlay everywhere else), auto-pause on app switch or rotation, screen kept awake during matches, and an in-app install button for the PWA.
 
 ## Technical one-liner
 
@@ -18,7 +18,7 @@ TypeScript monorepo — **three.js** front-end with procedural bloom/fog/particl
 
 ## Status
 
-The initial build is committed and runnable. Attract mode, 1P vs 5 AI levels, 2P local, sign-up, leaderboard, game-over screen, GFX tuning panel, mobile fullscreen + rotate-prompt, procedural Web Audio SFX — all implemented. Hall-of-Shame seeder pre-populates the leaderboard on first boot so day-one isn't empty.
+The initial build is committed and runnable. Attract mode, 1P vs 5 AI levels, 2P local, sign-up, leaderboard, game-over screen, GFX tuning panel, mobile fullscreen + app-wide landscape enforcement, installable PWA with offline 2P, procedural Web Audio SFX — all implemented. The 3D engine is lazy-loaded, so the initial download is ~104 kB of JS instead of ~614 kB. Hall-of-Shame seeder pre-populates the leaderboard on first boot so day-one isn't empty.
 
 ## What's intentionally out of scope
 

@@ -45,7 +45,7 @@ docker run --rm --network host \
 
 The site is an installable Progressive Web App:
 
-- **Android / desktop Chrome** — menu → "Install app". **iOS Safari** — Share → "Add to Home Screen".
+- Tap **INSTALL** on the main menu (Android / desktop Chrome opens the install prompt; iOS Safari shows an "Add to Home Screen" hint), or use the browser menu: **Android / desktop Chrome** — menu → "Install app". **iOS Safari** — Share → "Add to Home Screen".
 - Launches fullscreen, landscape-oriented, with its own icon — no browser chrome.
 - The **FULLSCREEN** button on the main menu also toggles fullscreen on demand from inside a normal browser tab (it hides itself once you've already installed the app, or if the browser doesn't support the Fullscreen API).
 - The built app shell is precached by a service worker, so the menu, 2P local, GFX tuning, and attract mode all keep working offline. Signup, AI match recording, and the leaderboard still need a connection (they talk to `/api/*`, which the service worker always sends straight to the network).

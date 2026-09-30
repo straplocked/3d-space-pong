@@ -1,6 +1,10 @@
 import "./styles.css";
 import { DIFFICULTIES, type Difficulty } from "@3d-space-pong/shared";
-import { initParallax } from "./ui/parallax.js";
+import {
+  initParallax,
+  disableParallax,
+  enableParallax,
+} from "./ui/parallax.js";
 import { defineRoute, defineNotFound, startRouter, go } from "./router.js";
 import { renderMenu } from "./ui/menu.js";
 import { renderSignup } from "./ui/signup.js";
@@ -9,18 +13,18 @@ import { renderGameOver } from "./ui/gameOver.js";
 import { renderNotFound } from "./ui/notFound.js";
 import { mountHud } from "./ui/hud.js";
 import { showPauseOverlay, type PauseHandle } from "./ui/pause.js";
-import { startAttract, type AttractHandle } from "./ui/attract.js";
+import type { AttractHandle } from "./ui/attract.js";
 import {
   enterGameplayViewport,
   leaveGameplayViewport,
+  isTouchDevice,
 } from "./ui/fullscreen.js";
-import { mountRotatePrompt, type RotateHandle } from "./ui/rotate.js";
-import {
-  mountDevPanel,
-  loadGfxSettings,
-  type DevPanelHandle,
-} from "./ui/devpanel.js";
-import { PongGame, type GameMode } from "./game/PongGame.js";
+import { mountOrientationGuard } from "./ui/rotate.js";
+import { holdScreenAwake, type WakeLockHandle } from "./ui/wakeLock.js";
+import { renderEngineError } from "./ui/engineError.js";
+import { initPwa } from "./ui/pwa.js";
+import type { DevPanelHandle } from "./ui/devpanel.js";
+import type { PongGame, GameMode } from "./game/PongGame.js";
 import { api } from "./api.js";
 import { getCurrentUser } from "./state.js";
 import { printConsoleEasterEgg } from "./content/quips.js";
@@ -33,7 +37,18 @@ const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
 let activeGame: PongGame | null = null;
 let activeHud: ReturnType<typeof mountHud> | null = null;
 let activePause: PauseHandle | null = null;
-let activeRotate: RotateHandle | null = null;
+let activeWakeLock: WakeLockHandle | null = null;
+// Per-route teardown hooks (event subscriptions tied to a live match).
+let routeCleanups: Array<() => void> = [];
+// Bumped by every clearScreen(). Async route handlers capture it before an
+// `await` and bail afterwards if the user has navigated away meanwhile.
+let routeToken = 0;
+
+// Everything three.js-dependent lives in a separate lazily-loaded chunk.
+const loadEngine = () => import("./engine.js");
+
+// App-wide rotate-to-landscape overlay (no-op on non-touch devices).
+const orientation = mountOrientationGuard();
 let activeAttract: AttractHandle | null = null;
 let activeDevPanel: DevPanelHandle | null = null;
 
@@ -72,16 +87,35 @@ function clearScreen(): void {
     activePause.dismiss();
     activePause = null;
   }
-  if (activeRotate) {
-    activeRotate.destroy();
-    activeRotate = null;
+  if (activeWakeLock) {
+    activeWakeLock.release();
+    activeWakeLock = null;
   }
+  for (const fn of routeCleanups) fn();
+  routeCleanups = [];
+  routeToken++;
   if (leavingGame) {
     // Only release the gameplay viewport when navigating away from the
     // game route. Replays stay fullscreen + landscape on mobile.
     void leaveGameplayViewport();
+    // Parallax (gyro-driven on phones) is paused during mobile gameplay.
+    enableParallax();
   }
   canvas.classList.remove("active");
+}
+
+/** Load the engine chunk, or render an error card if it fails (offline
+ *  before first cache, or a stale deploy). Returns null when the caller
+ *  should stop — either on failure or because the route changed. */
+async function engineOrNull(): Promise<typeof import("./engine.js") | null> {
+  const token = routeToken;
+  try {
+    const engine = await loadEngine();
+    return token === routeToken ? engine : null;
+  } catch (err) {
+    if (token === routeToken) renderEngineError(appRoot, err);
+    return null;
+  }
 }
 
 function asDifficulty(value: string | null): Difficulty {
@@ -91,17 +125,24 @@ function asDifficulty(value: string | null): Difficulty {
   return "rookie";
 }
 
-defineRoute("/attract", () => {
+defineRoute("/attract", async () => {
   clearScreen();
   idleWatcher?.pause();
-  activeAttract = startAttract({
-    root: appRoot,
-    canvas,
-    onDismiss: () => {
-      activeAttract = null;
-      go("/menu");
-    },
-  });
+  const engine = await engineOrNull();
+  if (!engine) return;
+  try {
+    activeAttract = engine.startAttract({
+      root: appRoot,
+      canvas,
+      onDismiss: () => {
+        activeAttract = null;
+        go("/menu");
+      },
+    });
+  } catch (err) {
+    canvas.classList.remove("active");
+    renderEngineError(appRoot, err);
+  }
 });
 
 defineRoute("/menu", () => {
@@ -122,9 +163,24 @@ defineRoute("/leaderboard", () => {
   renderLeaderboard(appRoot);
 });
 
-defineRoute("/tuning", () => {
+defineRoute("/tuning", async () => {
   clearScreen();
   idleWatcher?.pause();
+  const engine = await engineOrNull();
+  if (!engine) return;
+
+  let game: PongGame;
+  try {
+    game = new engine.PongGame({
+      canvas,
+      mode: { kind: "demo", leftDifficulty: "pro", rightDifficulty: "expert" },
+      onScoreChange: () => { /* tuning mode ignores score */ },
+      onPauseRequested: () => { /* no pause in tuning mode */ },
+    });
+  } catch (err) {
+    renderEngineError(appRoot, err);
+    return;
+  }
   canvas.classList.add("active");
 
   // Minimal overlay — just a back button so you can exit.
@@ -142,14 +198,8 @@ defineRoute("/tuning", () => {
       go("/menu");
     });
 
-  const game = new PongGame({
-    canvas,
-    mode: { kind: "demo", leftDifficulty: "pro", rightDifficulty: "expert" },
-    onScoreChange: () => { /* tuning mode ignores score */ },
-    onPauseRequested: () => { /* no pause in tuning mode */ },
-  });
   activeGame = game;
-  activeDevPanel = mountDevPanel({ game });
+  activeDevPanel = engine.mountDevPanel({ game });
   void game.start();
 });
 
@@ -172,31 +222,45 @@ defineRoute("/game", async (params) => {
     gameMode = { kind: "ai", difficulty };
   }
 
-  canvas.classList.add("active");
-
-  // Mobile: try fullscreen + landscape lock. Mount the rotate-to-landscape
-  // prompt which auto-hides itself if the device is already in landscape
-  // (or not a touch device at all).
+  // Mobile: try fullscreen + landscape lock. Called before any `await` so
+  // it still runs inside the tap's user-activation window.
   void enterGameplayViewport();
-  activeRotate = mountRotatePrompt();
+
+  const engine = await engineOrNull();
+  if (!engine) return;
 
   // Forward declare `game` so closures below can reference it.
-  let game: PongGame;
+  let game: PongGame | undefined;
 
   const openPause = () => {
     if (!game || activePause) return;
-    game.pause();
+    const g = game;
+    g.pause();
     activePause = showPauseOverlay({
       onResume: () => {
         activePause = null;
-        game.resume();
+        g.resume();
       },
       onQuit: () => {
         activePause = null;
-        game.abort();
+        g.abort();
       },
     });
   };
+
+  try {
+    game = new engine.PongGame({
+      canvas,
+      mode: gameMode,
+      onScoreChange: (l, r) => activeHud?.setScore(l, r),
+      onPauseRequested: openPause,
+    });
+  } catch (err) {
+    renderEngineError(appRoot, err);
+    return;
+  }
+  activeGame = game;
+  canvas.classList.add("active");
 
   activeHud = mountHud({
     mode: mode === "2p" ? "2p" : "ai",
@@ -204,19 +268,40 @@ defineRoute("/game", async (params) => {
     onPause: openPause,
   });
 
-  game = new PongGame({
-    canvas,
-    mode: gameMode,
-    onScoreChange: (l, r) => activeHud?.setScore(l, r),
-    onPauseRequested: openPause,
-  });
-  activeGame = game;
-
   // Apply any saved GFX settings (tuned via /tuning mode).
-  const savedGfx = loadGfxSettings();
+  const savedGfx = engine.loadGfxSettings();
   if (savedGfx) game.applyGfx(savedGfx);
 
-  const result = await game.start();
+  // Mobile session hygiene: keep the screen on, auto-pause when the phone
+  // is turned to portrait or the app is backgrounded (so nobody comes back
+  // to a point already lost), and stop the gyro parallax from animating
+  // behind the arena.
+  activeWakeLock = holdScreenAwake();
+  if (isTouchDevice()) disableParallax();
+  const onHidden = () => {
+    if (document.visibilityState === "hidden") openPause();
+  };
+  document.addEventListener("visibilitychange", onHidden);
+  routeCleanups.push(
+    () => document.removeEventListener("visibilitychange", onHidden),
+    orientation.onChange((blocked) => {
+      if (blocked) openPause();
+    }),
+  );
+
+  const resultPromise = game.start();
+  // Started while held in portrait: freeze until the player rotates and
+  // taps Resume.
+  if (orientation.isBlocked()) openPause();
+  const result = await resultPromise;
+
+  // Match over — release mobile session resources right away rather than
+  // waiting for the next route change.
+  activeWakeLock?.release();
+  activeWakeLock = null;
+  for (const fn of routeCleanups) fn();
+  routeCleanups = [];
+  enableParallax();
 
   // Clear pause overlay if quit was via the pause menu.
   if (activePause) {
@@ -278,6 +363,7 @@ defineNotFound(() => {
 });
 
 initParallax();
+initPwa();
 printConsoleEasterEgg();
 
 // Start idle-to-attract watcher. On idle routes (menu, leaderboard, etc.)
@@ -304,3 +390,13 @@ window.addEventListener("keydown", unlockAudio, { once: false });
 window.addEventListener("touchstart", unlockAudio, { once: false });
 
 startRouter();
+
+// Warm the engine chunk once the first screen has painted, so tapping
+// PLAY doesn't wait on a ~500 kB download. Failures are ignored here —
+// the route handlers surface them if the player actually starts a match.
+const prefetchEngine = () => void loadEngine().catch(() => {});
+if ("requestIdleCallback" in window) {
+  requestIdleCallback(prefetchEngine, { timeout: 3000 });
+} else {
+  setTimeout(prefetchEngine, 1500);
+}

@@ -19,15 +19,18 @@ Either way:
 - Fast drag = instant paddle move (there's no smoothing — 1:1 position control).
 - Lift your finger → paddle stays where you left it.
 - Touches on buttons (pause, audio toggle, fullscreen toggle, any menu button) do **not** move the paddle. You can tap buttons safely without the paddle jumping.
+- A touch-specific hint ("DRAG ANYWHERE TO MOVE", or "P1: DRAG LEFT HALF · P2: DRAG RIGHT HALF" in 2P) shows at the start of a match and fades after about 4 seconds.
+- Phones and tablets must be held in **landscape**. Turning to portrait covers the screen with a rotate prompt and pauses any match in progress — see [Getting started](./getting-started.md#on-mobile).
 
 ## Fullscreen
 
-A **FULLSCREEN** button on the main menu toggles the browser's Fullscreen API on `<html>`, and on mobile also tries to lock the screen orientation to landscape. It's hidden automatically when the browser doesn't support fullscreen, or when the game is already running installed as a fullscreen app (see [Getting started](./getting-started.md#installing-as-an-app)).
+A **FULLSCREEN** button on the main menu toggles the browser's Fullscreen API on `<html>`, and on mobile also tries to lock the screen orientation to landscape. It's hidden automatically when the browser doesn't support fullscreen, or when the game is already running installed as a fullscreen app (see [Getting started](./getting-started.md#installing-as-an-app)). On Android, the rotate prompt's **GO FULLSCREEN** button does the same thing from any screen.
 
 ## Pause and quit
 
 - **Keyboard:** press `Esc`.
 - **Mobile / mouse:** tap the pause button in the top corner of the HUD.
+- **Automatic (mobile):** switching apps, locking the phone, or rotating to portrait pauses the match for you.
 - The pause overlay has two buttons: **Resume** (continue the match) and **Quit to Menu** (discard the match — no loss recorded).
 
 ## The dev console

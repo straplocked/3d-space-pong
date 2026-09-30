@@ -678,14 +678,26 @@ body::after {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
+  /* Vertical centering comes from the children's auto margins, not
+     align-items: center — that way a card taller than the viewport (a
+     phone in landscape is only ~360-430px tall) overflows downward and
+     scrolls, instead of spilling off the top where it can't be reached. */
+  align-items: flex-start;
   justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 2rem;
+  /* Landscape phones put the notch / home indicator on the left/right. */
+  padding-left: max(2rem, env(safe-area-inset-left));
+  padding-right: max(2rem, env(safe-area-inset-right));
   pointer-events: none;
 }
 
 .screen-root > * {
   pointer-events: auto;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 /* =============================================================
@@ -2141,7 +2153,7 @@ body::after {
 
 /* =============================================================
    ROTATE-TO-LANDSCAPE PROMPT
-   Shown on touch devices when window is in portrait during gameplay.
+   Shown app-wide on touch devices whenever the window is in portrait.
    Hidden (display:none) when in landscape or on non-touch devices.
    ============================================================= */
 
@@ -2153,7 +2165,7 @@ body::after {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: rgba(0, 5, 0, 0.96);
+  background: var(--bg-0);
   color: var(--term-green);
   font-family: var(--mono);
   text-align: center;
@@ -2349,4 +2361,216 @@ body::after {
   .card h1 {
     font-size: 1.15rem;
   }
+}
+
+/* =============================================================
+   SHORT LANDSCAPE (phones held sideways)
+   Width-based breakpoints above never match a landscape phone — it's
+   ~740-930px wide — so compaction keys off *height* instead. Landscape is
+   enforced on touch devices (see ui/rotate.ts), so this is the layout
+   every phone player actually sees.
+   ============================================================= */
+
+@media (max-height: 500px) {
+  html,
+  body {
+    font-size: 13px;
+  }
+
+  .screen-root {
+    padding: 0.6rem;
+    padding-left: max(0.6rem, env(safe-area-inset-left));
+    padding-right: max(0.6rem, env(safe-area-inset-right));
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+  }
+
+  .card {
+    padding: 1.5rem 1.4rem 0.9rem;
+  }
+
+  .card::before {
+    font-size: 0.6rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .card > *:first-of-type {
+    margin-top: 1.1rem;
+  }
+
+  .card h1 {
+    font-size: 1.2rem;
+  }
+
+  .card .tagline {
+    margin-bottom: 0.8rem;
+  }
+
+  .btn {
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-back {
+    padding: 0.45rem 0.8rem;
+  }
+
+  .menu-divider {
+    margin: 0.35rem 0 0.4rem;
+  }
+
+  .card-toggles {
+    top: 0.22rem;
+  }
+
+  /* Icon-only toggles so SOUND / INSTALL / FULLSCREEN fit beside the
+     window-chrome title. */
+  .audio-toggle .audio-label,
+  .fullscreen-toggle .fullscreen-label {
+    display: none;
+  }
+
+  /* HUD: pin everything tight to the edges so the arena stays clear. */
+  .hud-score {
+    top: calc(0.4rem + env(safe-area-inset-top));
+    font-size: 1.9rem;
+    gap: 1.2rem;
+  }
+
+  .hud-mode {
+    top: calc(0.5rem + env(safe-area-inset-top));
+    left: calc(0.6rem + env(safe-area-inset-left));
+    font-size: 0.62rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .hud-mode .subtitle {
+    display: none;
+  }
+
+  .hud-pause-btn {
+    top: calc(0.4rem + env(safe-area-inset-top));
+    right: calc(0.6rem + env(safe-area-inset-right));
+    padding: 0.45rem 0.65rem;
+  }
+
+  .hud-pause-btn .pause-label {
+    display: none;
+  }
+
+  .hud-controls {
+    bottom: calc(0.45rem + env(safe-area-inset-bottom));
+    font-size: 0.6rem;
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .leaderboard-table {
+    font-size: 0.72rem;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .tuning-overlay {
+    padding: 0.35rem 0.8rem;
+    gap: 0.8rem;
+  }
+
+  .tuning-hint {
+    display: none;
+  }
+}
+
+/* =============================================================
+   TOUCH-DEVICE PERFORMANCE
+   ============================================================= */
+
+@media (pointer: coarse) {
+  /* Blurring a live WebGL canvas behind the pause dialog re-runs the blur
+     every composited frame; a denser flat dim looks the same on a phone. */
+  .pause-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(0, 5, 0, 0.86);
+  }
+
+  /* The scanlines are pure black at low alpha, where multiply and normal
+     blending are identical — but a blend mode forces an extra full-screen
+     compositing pass over the canvas on mobile GPUs. */
+  body::before {
+    mix-blend-mode: normal;
+  }
+
+  /* No text selection / callouts from long-presses on UI chrome. */
+  .hud,
+  .card-toggles,
+  .btn {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Touch control hint fades out once players have had a chance to read it. */
+.hud-controls {
+  transition: opacity 0.6s ease;
+}
+
+.hud-controls.faded {
+  opacity: 0;
+}
+
+/* The toggle buttons set display:inline-flex, which beats the UA's
+   [hidden] rule — restore it so pwa.ts can hide the INSTALL button. */
+.fullscreen-toggle[hidden],
+.install-hint[hidden] {
+  display: none;
+}
+
+/* =============================================================
+   PWA: install hint, offline pill, rotate-overlay fullscreen button
+   ============================================================= */
+
+.install-hint {
+  margin: 0.4rem 0 0;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.72rem;
+  color: var(--term-cyan);
+  border: 1px dashed var(--term-dim);
+  background: rgba(0, 229, 255, 0.05);
+}
+
+.offline-pill {
+  position: fixed;
+  left: 50%;
+  bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 55;
+  display: none;
+  padding: 0.25rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--term-amber);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.offline-pill.visible {
+  display: block;
+}
+
+.rotate-lock-btn {
+  margin: 1.2rem auto 0;
+  width: auto;
+  padding-left: 2rem;
+  padding-right: 2.4rem;
+  text-align: center;
 }

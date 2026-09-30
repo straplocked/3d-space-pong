@@ -56,5 +56,9 @@ See [../user/leaderboard-guide.md](../user/leaderboard-guide.md) for the player-
 ## Mobile experience
 
 - `isTouchDevice()` branching adjusts renderer DPR, antialiasing, shadow map resolution, bloom pass resolution, and particle counts so phones sustain high frame rates.
-- Entering gameplay requests fullscreen + landscape lock; a rotate-prompt overlay covers cases where the API isn't supported (iOS Safari).
+- Landscape is enforced on every screen for phones: an opaque rotate overlay in portrait, plus a real landscape lock where the browser allows it (Android fullscreen, installed app). iOS Safari relies on the overlay.
+- Matches auto-pause on app switch, rotation to portrait, or GPU context loss; the screen is kept awake during play; paused frames aren't re-rendered, saving battery.
+- In-app **INSTALL** button (Android/Chrome prompt, iOS "Add to Home Screen" hint) and an offline badge that tells players 2P local still works.
+- Smaller first load: the 3D engine downloads in the background after the menu appears (~104 kB initial JS vs ~614 kB before).
+- If the 3D engine can't start (no WebGL, offline before first load), players get a plain error screen with Reload / Back to Menu instead of a frozen game.
 - Touch controls are direct manipulation, not virtual buttons. Fast drag = fast paddle.

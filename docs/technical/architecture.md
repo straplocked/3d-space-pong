@@ -35,14 +35,16 @@ Workspace package name prefix: `@3d-space-pong/*`. The web and server packages d
 
 The server has two responsibilities: serve the built web bundle and serve `/api/*`. A single-page-app fallback in [packages/server/src/index.ts](../../packages/server/src/index.ts) returns `index.html` for any non-API route so the hash router can take over.
 
-The web bundle is also a PWA: Vite's build (via `vite-plugin-pwa`, `strategies: "generateSW"`) emits `manifest.webmanifest` and `sw.js` alongside the rest of `web/dist/`, precaching the hashed app shell for offline play of the local game modes and routing `/api/*` network-only. The server sets the manifest's content-type and the service worker's cache headers explicitly — see [environment.md#static-file-headers](./server/environment.md#static-file-headers).
+The web bundle is also a PWA: Vite's build (via `vite-plugin-pwa`, `strategies: "generateSW"`) emits `manifest.webmanifest` and `sw.js` alongside the rest of `web/dist/`, precaching the hashed app shell for offline play of the local game modes and routing `/api/*` network-only. The server sets the manifest's content-type and the service worker's cache headers explicitly — see [environment.md#static-file-headers](./server/environment.md#static-file-headers). The manifest declares `categories: ["games", "entertainment"]` and `lang: "en"`. Beyond the manifest, [ui/pwa.ts](../../packages/web/src/ui/pwa.ts) adds an in-app INSTALL button (Chromium prompt replay / iOS hint) and an offline status pill.
+
+The three.js engine is code-split: [packages/web/src/engine.ts](../../packages/web/src/engine.ts) re-exports `PongGame`, `startAttract`, `mountDevPanel` and `loadGfxSettings`, and `main.ts` loads it with a dynamic `import()` only on `/attract`, `/tuning` and `/game` (plus an idle-time prefetch after first paint). The initial JS bundle is ~104 kB; the engine chunk is ~518 kB (~131 kB gzip) and is still precached by the service worker, so offline play is unaffected. See [router-lifecycle.md#lazy-engine-chunk](./web/router-lifecycle.md#lazy-engine-chunk).
 
 ## Data flow for a single match
 
 1. Player opens the site → Vite/Fastify serves `web/dist/index.html`.
-2. `main.ts` boots router, registers routes, starts idle watcher. Default hash is `/attract` (first-time) or the user's last hash.
+2. `main.ts` mounts the app-wide orientation guard, boots router, registers routes, starts idle watcher, and prefetches the engine chunk when idle. Default hash is `/attract` (first-time) or the user's last hash.
 3. User signs up → `POST /api/signup` upserts a row in `users`, response stored in `localStorage` via `state.ts`.
-4. User picks a difficulty → hash becomes `/game?mode=ai&difficulty=pro`. `main.ts` constructs a `PongGame` and binds the HUD, pause overlay, and (on mobile) rotate prompt + fullscreen.
+4. User picks a difficulty → hash becomes `/game?mode=ai&difficulty=pro`. `main.ts` requests fullscreen + landscape (mobile, before any `await`), awaits the lazy engine chunk, constructs a `PongGame` and binds the HUD and pause overlay. On mobile it also holds a screen wake lock and auto-pauses on app switch or rotation to portrait. If the engine can't load or WebGL fails, an error card replaces the game.
 5. Game loop runs in `PongGame.tick()`. Score changes bubble up via `onScoreChange` → HUD updates.
 6. When a side reaches 7 points, `start()`'s promise resolves with a `GameResult`. If the mode is AI and not aborted, `api.recordMatch()` posts to `POST /api/matches`.
 7. `gameOver.ts` renders results + a context-aware quip.

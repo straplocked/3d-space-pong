@@ -23,7 +23,7 @@ Four actions:
 | **GFX Tuning** | Fine-tune bloom, lighting, fog, etc. while an AI-vs-AI match rolls. |
 | **Attract Mode** | Jump back to the demo loop manually. |
 
-Plus a **SOUND: ON / OFF** toggle and a **FULLSCREEN** toggle in the corner. Sound is remembered between sessions. The fullscreen button hides itself if your browser doesn't support the Fullscreen API, or if you've already installed the game as an app (see below) — there's no browser chrome to hide in that case.
+Plus a **SOUND: ON / OFF** toggle, a **FULLSCREEN** toggle, and (when your browser supports installing) an **INSTALL** button in the corner. Sound is remembered between sessions. The fullscreen button hides itself if your browser doesn't support the Fullscreen API, or if you've already installed the game as an app (see below) — there's no browser chrome to hide in that case. The install button also disappears once the game is installed.
 
 ## Signing up (1P vs AI only)
 
@@ -46,7 +46,21 @@ Once signed up, you're remembered on this device via local browser storage. You 
 
 ## On mobile
 
-The game requests fullscreen + landscape orientation on mobile devices. If your phone is portrait, you'll see a rotate-to-landscape prompt. iOS Safari can't lock orientation programmatically, so you'll need to rotate yourself. You can also trigger fullscreen manually any time from the **FULLSCREEN** button on the main menu.
+The game is landscape-only on phones and tablets. Whenever you hold the device in portrait — on any screen, not just during a match — a **Rotate to Landscape** screen covers the app until you turn it sideways.
+
+- **Android, in a browser tab:** the rotate screen has a **GO FULLSCREEN** button that goes fullscreen and locks the screen to landscape for you.
+- **Installed as an app:** the game locks itself to landscape on your first tap.
+- **iPhone / iPad:** Safari can't lock orientation, so you'll need to rotate yourself.
+
+Starting a match also requests fullscreen + landscape, and you can trigger fullscreen manually any time from the **FULLSCREEN** button on the main menu.
+
+During a match on mobile:
+- **Auto-pause** — if you switch apps, lock the phone, or turn it to portrait, the match pauses itself so you don't come back to a point already lost. Rotate back and tap **Resume**.
+- **Screen stays awake** — the screen won't dim or lock mid-rally (on browsers that support it).
+- **Controls hint** — a short "drag to move" reminder appears at the bottom and fades out after a few seconds.
+- The moving background is held still during a match so it doesn't distract, and resumes afterward.
+
+If the game can't start — for example your browser can't run 3D graphics, or you're offline before the game has ever been loaded — you'll see a **Can't Start Game** screen explaining why, with **Reload** and **Back to Menu** buttons.
 
 Touch controls:
 - **1P vs AI** — drag anywhere on the arena to move your paddle. Your finger Y controls the paddle directly — no virtual joystick.
@@ -54,7 +68,9 @@ Touch controls:
 
 ### Installing as an app
 
-The site is an installable Progressive Web App. From your phone's browser menu, choose **"Add to Home Screen"** (iOS Safari) or **"Install app"** (Android Chrome). Once installed, it opens fullscreen with its own icon — no address bar, no browser chrome — and the local game modes (menu, 2P local, GFX tuning, attract mode) keep working even offline, since the app shell is cached on install. Signing up, recording AI matches, and the leaderboard still need a network connection, since those talk to the server's `/api/*` routes.
+The site is an installable Progressive Web App. The easiest way is the **INSTALL** button on the main menu: on Android / desktop Chrome it opens the install prompt directly; on iPhone / iPad it shows a short hint (tap Safari's **Share** button, then **"Add to Home Screen"**). You can also use your browser's own menu — **"Add to Home Screen"** (iOS Safari) or **"Install app"** (Android Chrome). Once installed, it opens fullscreen with its own icon — no address bar, no browser chrome — and the local game modes (menu, 2P local, GFX tuning, attract mode) keep working even offline, since the app shell is cached on install. Signing up, recording AI matches, and the leaderboard still need a network connection, since those talk to the server's `/api/*` routes. While you're offline, a small **OFFLINE · 2P local still works** badge appears so you know which modes are available.
+
+The first screen loads quickly because the 3D engine downloads in the background after the menu appears; by the time you tap to play it's usually already there.
 
 ## What gets recorded
 

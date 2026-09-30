@@ -9,7 +9,7 @@ Sources: [packages/web/src/ui/](../../../packages/web/src/ui/).
 Source: [ui/menu.ts](../../../packages/web/src/ui/menu.ts).
 
 `renderMenu(root)` writes a terminal-style card with:
-- A `.card-toggles` group in the top-right corner (kept off the "window chrome" title bar text on the left): an audio toggle (`sfx.setEnabled`, re-renders the card to update the label) and a fullscreen toggle, mounted via `mountFullscreenToggle()` from [ui/fullscreenToggle.ts](../../../packages/web/src/ui/fullscreenToggle.ts). The fullscreen button hides itself when unsupported or already running as an installed PWA — see [input.md](./input.md#interactions-with-other-modules).
+- A `.card-toggles` group in the top-right corner (kept off the "window chrome" title bar text on the left): an audio toggle (`sfx.setEnabled`, re-renders the card to update the label), a fullscreen toggle mounted via `mountFullscreenToggle()` from [ui/fullscreenToggle.ts](../../../packages/web/src/ui/fullscreenToggle.ts), and an **INSTALL** button mounted via `mountInstallButton()` from [ui/pwa.ts](../../../packages/web/src/ui/pwa.ts) (prepended to the group; see [Install button and offline pill](#install-button-and-offline-pill)). The fullscreen button hides itself when unsupported or already running as an installed PWA — see [input.md](./input.md#interactions-with-other-modules). On short landscape screens (`max-height: 500px`) the toggles collapse to icon-only.
 - Title + tagline.
 - Primary buttons: **Fight The Machine** → `/signup`, **Betray a Friend** → `/game?mode=2p`, **Hall of Shame** → `/leaderboard`.
 - Divider + tertiary row: **GFX Tuning** → `/tuning`, **Attract Mode** → `/attract`.
@@ -74,7 +74,7 @@ Appended to `document.body` (not `#app`) so it overlays the canvas. Renders:
 - **Mode label**: `VS <DIFFICULTY>` (with subtitle from `DIFFICULTY_PROFILES`) or `2P LOCAL` (subtitle "Betray a friend").
 - **Pause button** in the corner — listens to both `click` and `touchstart` with `preventDefault()` + `stopPropagation()` (so mobile taps don't leak into the Input touch handler — see [input.md](./input.md)).
 - **Score** `<left> · <right>`.
-- **Controls hint** — `P1: W / S · P2: ↑ / ↓ · ESC` in 2P mode, or `MOVE: W / S or DRAG · ESC` in AI mode.
+- **Controls hint** — on desktop, `P1: W/S or DRAG LEFT · P2: ↑/↓ or DRAG RIGHT · ESC` in 2P mode, or `MOVE: W / S or DRAG · ESC` in AI mode. On touch devices (`isTouchDevice()`) the copy is touch-only — `P1: DRAG LEFT HALF · P2: DRAG RIGHT HALF` or `DRAG ANYWHERE TO MOVE` — and the hint gets the `.faded` class after 4 s (`TOUCH_HINT_MS`) so it doesn't sit over the paddles. The timer is cleared in `destroy()`.
 
 Exposes `setScore(l, r)` and `destroy()`.
 
@@ -88,18 +88,63 @@ Source: [ui/idle.ts](../../../packages/web/src/ui/idle.ts).
 
 Source: [ui/fullscreen.ts](../../../packages/web/src/ui/fullscreen.ts).
 
-Five helpers:
+Helpers:
 - `isTouchDevice()` — used across the app to gate mobile-specific behavior.
-- `isPortrait()` — used by rotate prompt.
+- `isPortrait()` — viewport aspect check (no longer used by the orientation guard, which uses a `matchMedia` query).
+- `isFullscreenSupported()` / `isFullscreenActive()` / `isInstalledDisplayMode()` / `toggleFullscreen()` — used by the menu toggle, the orientation guard and `pwa.ts`.
 - `enterFullscreen(el)` / `exitFullscreen()` — with webkit fallbacks; swallow errors.
 - `lockLandscape()` / `unlockOrientation()` — no-ops on iOS (unsupported); swallow errors.
 - `enterGameplayViewport()` / `leaveGameplayViewport()` — composite helpers called from `/game`. Short 60 ms delay between fullscreen and lock because the orientation API requires fullscreen to have landed.
 
-## Rotate prompt
+## Orientation guard
 
 Source: [ui/rotate.ts](../../../packages/web/src/ui/rotate.ts).
 
-`mountRotatePrompt()`. If not a touch device, returns a no-op handle. Otherwise appends an overlay with an icon + "Rotate to Landscape". Listens to `resize` and `orientationchange` and toggles `.visible` based on `isPortrait()`.
+`mountOrientationGuard()` is called **once** at startup in [main.ts](../../../packages/web/src/main.ts) and covers every route (menu, signup, leaderboard, gameplay), not just `/game`. It returns an `OrientationGuard`:
+
+| Member | Purpose |
+| --- | --- |
+| `isBlocked()` | `true` while the portrait overlay is showing. |
+| `onChange(fn)` | Subscribe to blocked/unblocked transitions; returns an unsubscribe fn. The `/game` route uses it to open the pause overlay. |
+
+Behavior:
+- **Gate**: active only when `isTouchDevice()` **and** `matchMedia("(pointer: coarse)")` — a touchscreen laptop (fine primary pointer) gets a no-op guard.
+- **Detection**: `matchMedia("(orientation: portrait)")` `change` events, plus a delayed (120 ms) re-check on `orientationchange` for older WebViews.
+- **Overlay**: an opaque full-screen `role="alertdialog"` card ("Rotate to Landscape"), toggled via `.visible`; also toggles `html.orientation-blocked`.
+- **Android browser tab** (not installed, Fullscreen API supported, `screen.orientation.lock` present): the overlay includes a **GO FULLSCREEN** button (`.rotate-lock-btn`) that calls `enterFullscreen()`, waits 60 ms, then `lockLandscape()` — lock only works inside fullscreen there.
+- **Installed PWA** (`display-mode: fullscreen` / `standalone`): locks landscape on the first `pointerdown` (lock needs user activation).
+- **iOS**: no lock API, so the overlay itself is the enforcement.
+
+## Install button and offline pill
+
+Source: [ui/pwa.ts](../../../packages/web/src/ui/pwa.ts).
+
+- `initPwa()` — called once at startup. Listens for `beforeinstallprompt` (calls `preventDefault()` to suppress Chromium's mini-infobar and stashes the event) and `appinstalled` (clears it). Also mounts the offline pill.
+- `mountInstallButton(container)` — adds an **INSTALL** button (`.fullscreen-toggle.install-toggle`) to the menu's `.card-toggles`, and an `.install-hint` note after the toggle group. Returns a no-op handle if already installed (`isInstalledDisplayMode()` or iOS `navigator.standalone`). Visible only when an install path exists:
+  - **Chromium**: a stashed `beforeinstallprompt` → click replays `prompt()` (single-use; the event is cleared).
+  - **iOS Safari** (incl. iPadOS reporting as Macintosh with touch): click toggles the "tap Share, then Add to Home Screen" hint.
+  - Re-renders on installability changes; drops its listener if the menu re-rendered and detached it.
+- **Offline pill** — a `role="status"` `.offline-pill` on `document.body` reading `OFFLINE · 2P local still works`, shown (`.visible`) while `navigator.onLine` is false; updated on `online` / `offline`.
+
+## Engine error screen
+
+Source: [ui/engineError.ts](../../../packages/web/src/ui/engineError.ts).
+
+`renderEngineError(root, err)` — rendered by `/attract`, `/tuning` and `/game` when the lazily-loaded engine chunk fails to download or the engine constructor throws (see [router-lifecycle.md](./router-lifecycle.md#lazy-engine-chunk)). Logs the error, deactivates the canvas, and shows a **Can't Start Game** card with a plain message chosen by `describe(err)`:
+
+| Condition | Message gist |
+| --- | --- |
+| Error message mentions WebGL | Couldn't create a WebGL context — check hardware acceleration, close other 3D tabs. |
+| `navigator.onLine === false` | Engine not downloaded yet and device is offline — reconnect once to cache it. |
+| Otherwise | Engine failed to load — reload. |
+
+Buttons: **Reload** (`location.reload()`) and **Back to Menu** (`go("/menu")`). No humor here — error-copy rule from [content-quips](./content-quips.md). Before this existed, a WebGL failure left a hung HUD and an uncaught promise rejection.
+
+## Wake lock
+
+Source: [ui/wakeLock.ts](../../../packages/web/src/ui/wakeLock.ts).
+
+`holdScreenAwake()` requests a Screen Wake Lock (`navigator.wakeLock.request("screen")`) for the duration of a match, and re-requests it on `visibilitychange` back to visible (the OS drops it when hidden). Best-effort: unsupported browsers get a no-op handle and denied requests are swallowed. Returns `{ release() }`; held in `activeWakeLock` by `main.ts` and released when the match resolves or in `clearScreen()`.
 
 ## Attract
 
@@ -119,7 +164,7 @@ Dismiss listeners (`keydown`, `mousedown`, `touchstart` with `capture: true`) ar
 
 Source: [ui/parallax.ts](../../../packages/web/src/ui/parallax.ts).
 
-Wraps `parallax-js`. One idempotent `initParallax()` that attaches to `#parallax-bg`. Optional `disableParallax()` / `enableParallax()` if we ever need to suppress motion (currently unused).
+Wraps `parallax-js`. One idempotent `initParallax()` that attaches to `#parallax-bg`. `disableParallax()` / `enableParallax()` suppress / restore motion — `/game` disables parallax on touch devices (gyro-driven) for the duration of a match; it's re-enabled when the match ends and when leaving gameplay in `clearScreen()`.
 
 ## 404
 

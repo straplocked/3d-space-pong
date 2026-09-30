@@ -2,7 +2,7 @@
 
 > [Back to web ToC](./README.md)
 
-The game engine is one class: `PongGame` in [packages/web/src/game/PongGame.ts](../../../packages/web/src/game/PongGame.ts) (1130 lines). It owns the WebGL renderer, the scene, the physics loop, and the post-processing pipeline. Because the file is large, this doc is split into three sub-pages plus this ToC.
+The game engine is one class: `PongGame` in [packages/web/src/game/PongGame.ts](../../../packages/web/src/game/PongGame.ts) (1182 lines). It owns the WebGL renderer, the scene, the physics loop, and the post-processing pipeline. Because the file is large, this doc is split into three sub-pages plus this ToC.
 
 ## Sub-pages
 
@@ -28,7 +28,7 @@ Methods:
 | Method | Purpose |
 | --- | --- |
 | `start(): Promise<GameResult>` | Begin the game loop. Resolves on score-to-win or `abort()`. |
-| `pause()` / `resume()` | Suspend/resume physics; keeps rendering the frozen frame. |
+| `pause()` / `resume()` | Suspend/resume physics; keeps the frozen frame on screen, redrawing only when dirty. |
 | `abort()` | End the match immediately. Result comes back with `aborted: true`. |
 | `applyGfx(partial)` | Live-tune any subset of `GfxSettings`. |
 | `getGfx()` | Snapshot of current settings. |
@@ -73,7 +73,7 @@ new PongGame({...})
      ▼
   tick(time) each frame
   ├─ if input.consumeEscape() → onPauseRequested()
-  ├─ if paused → composer.render() only
+  ├─ if paused → composer.render() only if needsRender (then clear it)
   ├─ compute dt (capped at 50ms), sample FPS
   ├─ updatePaddles(dt, nowSeconds)
   ├─ updateBall(dt)
@@ -90,7 +90,7 @@ new PongGame({...})
 
 ### Pause semantics
 
-`pause()` freezes physics and input polling but keeps calling `composer.render()` so the background doesn't go black. `resume()` adds the elapsed pause time to `pausedAccumMs` and resets `lastTickTime` so the next frame doesn't produce a massive `dt`.
+`pause()` freezes physics and input polling. The canvas keeps its last frame, so while paused the loop only calls `composer.render()` when the private `needsRender` flag is set — by `pause()` itself, `handleResize()`, `applyGfx()`, and `webglcontextrestored`. This stops a phone from re-running bloom at 60 fps behind the pause dialog. `resume()` adds the elapsed pause time to `pausedAccumMs` and resets `lastTickTime` so the next frame doesn't produce a massive `dt`.
 
 `finish()` also accounts for in-flight pause time (if `abort()` is called while paused, the ongoing pause is excluded from `durationMs` too).
 
@@ -108,6 +108,12 @@ new PongGame({...})
 | Shadow radius | 2 | 3 |
 
 Detection: [`isTouchDevice()`](../../../packages/web/src/ui/fullscreen.ts) at construction time; cached on `this.isMobile`.
+
+### WebGL context loss
+
+Mobile GPUs drop WebGL contexts under memory pressure or when the app is backgrounded. The constructor adds a `webglcontextlost` listener on the canvas that calls `preventDefault()` (asking the browser to restore the context; three.js re-initialises on restore) and, for non-demo modes, fires `onPauseRequested()` so the ball doesn't keep moving on a frozen screen. A `webglcontextrestored` listener marks the frame dirty. Both listeners are removed in `dispose()`.
+
+If the context can't be created at all, the constructor throws; the route handlers in `main.ts` catch that and render the engine-error card — see [ui-screens.md](./ui-screens.md#engine-error-screen).
 
 ## GfxSettings
 

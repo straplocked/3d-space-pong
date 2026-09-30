@@ -4,6 +4,42 @@ Dated log of documentation changes, one entry per DOC_UPDATE run. See [../DOC_UP
 
 ---
 
+## Run #3 — 2026-09-30
+
+**Mobile/PWA hardening: app-wide landscape guard, lazy three.js engine, wake lock, install button, engine error screen.**
+
+Code changes this run documented:
+- `packages/web/src/ui/rotate.ts` — rewritten. `mountRotatePrompt()` removed; new `mountOrientationGuard()` mounted once at startup (every route, not just `/game`). Active only on touch devices with a coarse primary pointer; uses `matchMedia("(orientation: portrait)")`; opaque overlay; toggles `html.orientation-blocked`; exposes `isBlocked()` / `onChange(fn)`. Android browser tabs get a GO FULLSCREEN button (fullscreen + landscape lock); installed PWAs lock landscape on first `pointerdown`; iOS relies on the overlay.
+- `packages/web/src/main.ts` — `activeRotate` removed; new `activeWakeLock`, `routeCleanups`, `routeToken` (bumped in `clearScreen()`; async handlers bail if the route changed during an await). three.js engine lazy-loaded via `loadEngine()` / `engineOrNull()`; `/attract`, `/tuning`, `/game` are async and render `renderEngineError` on failure; engine chunk prefetched on `requestIdleCallback`. `/game`: `enterGameplayViewport()` before any await, wake lock held, parallax disabled on touch during the match, pause overlay auto-opens on `visibilitychange` (hidden) or when the orientation guard blocks (and immediately if the match starts in portrait); resources released as soon as the match resolves. `initPwa()` at startup.
+- `packages/web/src/engine.ts` — new lazy-chunk entry re-exporting `PongGame`, `startAttract`, `mountDevPanel`, `loadGfxSettings`. Main JS bundle ~614 kB → ~104 kB; engine chunk ~518 kB (~131 kB gzip), still precached by the service worker.
+- `packages/web/src/ui/wakeLock.ts` — new. `holdScreenAwake()` Screen Wake Lock, re-acquired on visibility return, best-effort.
+- `packages/web/src/ui/engineError.ts` — new. `renderEngineError(root, err)` "Can't Start Game" card (WebGL failure / offline-before-cache / generic load failure) with Reload and Back to Menu.
+- `packages/web/src/ui/pwa.ts` — new. `initPwa()` captures `beforeinstallprompt` / `appinstalled`; `mountInstallButton(container)` INSTALL button (Chromium prompt replay, iOS "Add to Home Screen" hint), hidden when installed; offline pill ("OFFLINE · 2P local still works").
+- `packages/web/src/ui/menu.ts` — mounts the install button in `.card-toggles`.
+- `packages/web/src/ui/hud.ts` — touch-only controls hint copy on touch devices, fades (`.faded`) after 4 s.
+- `packages/web/src/game/PongGame.ts` — while paused, renders only when dirty (`needsRender` set on pause, resize, `applyGfx`, `webglcontextrestored`); `webglcontextlost` handler (`preventDefault()` + `onPauseRequested` for non-demo modes); listeners removed in `dispose()`.
+- `packages/web/src/styles.css` — `.screen-root` scrolls vertically; safe-area left/right padding; new `@media (max-height: 500px)` short-landscape block; new `@media (pointer: coarse)` block (no pause backdrop blur, normal-blend scanlines, no selection/callouts on UI chrome); styles for `.install-hint`, `.offline-pill`, `.rotate-lock-btn`, `.hud-controls.faded`, `[hidden]` fix for toggle buttons; opaque rotate overlay.
+- `packages/web/vite.config.ts` — `build.chunkSizeWarningLimit: 560`; manifest gains `categories: ["games", "entertainment"]` and `lang: "en"`.
+
+Docs updated:
+- `docs/technical/web/router-lifecycle.md` — route table (`/attract`, `/tuning`, `/game`), lifecycle variables (`activeWakeLock`, `routeCleanups`, `routeToken`, app-wide `orientation`), `clearScreen()` steps; "Mobile fullscreen handoff" replaced by new "Lazy engine chunk" and "Mobile session handling (`/game`)" sections.
+- `docs/technical/web/README.md` — boot sequence (orientation guard, `initPwa()`, engine prefetch), lifecycle-variable summary, `engine.ts` and `styles.css` rows, PongGame line count.
+- `docs/technical/web/ui-screens.md` — menu toggles (INSTALL), HUD touch hint, fullscreen helper list; "Rotate prompt" replaced by "Orientation guard"; new "Install button and offline pill", "Engine error screen", "Wake lock" sections; parallax enable/disable now used.
+- `docs/technical/web/input.md` — orientation-guard overlay, HUD touch hint bullet.
+- `docs/technical/web/game-engine-overview.md` — dirty-flag paused rendering, new "WebGL context loss" subsection, line count 1130 → 1182.
+- `docs/technical/README.md` — UI screens ToC blurb.
+- `docs/technical/architecture.md` — PWA paragraph (manifest fields, install/offline UI), new lazy-engine paragraph, data-flow steps 2 and 4.
+- `docs/user/getting-started.md` — INSTALL button, app-wide landscape enforcement, GO FULLSCREEN on Android, auto-pause, screen stays awake, fading hint, Can't Start Game screen, offline badge, background engine download.
+- `docs/user/controls.md` — touch hint, landscape requirement, GO FULLSCREEN, automatic pause.
+- `docs/leadership/executive-summary.md`, `product-overview.md`, `architecture-at-a-glance.md` — mobile/PWA bullets and smaller initial download.
+- Root `README.md` — INSTALL button in "Install as an app".
+
+No new routes, API endpoints, or schemas. No new doc pages (new modules documented inside `ui-screens.md` / `router-lifecycle.md`).
+
+Threshold notes: `packages/web/src/main.ts` is now 402 lines (was 306) — at the ~400-line mark, but much of it is comments and route wiring; `router-lifecycle.md` remains a single readable page, so no split this run. Re-evaluate next run. `PongGame.ts` grew to 1182 lines; the `DOC_UPDATE.md` split table still shows 1130 because only the counter changes there on a normal run — sub-page line ranges in `game-engine-overview.md` are approximate and have drifted by up to ~50 lines.
+
+---
+
 ## Run #2 — 2026-09-29
 
 **PWA support (installable, fullscreen, offline local play).**

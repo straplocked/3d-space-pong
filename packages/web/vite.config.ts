@@ -16,6 +16,10 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: true,
+    // The lazily-loaded engine chunk is essentially three.js + its
+    // postprocessing addons (~518 kB); it can't usefully split further, and
+    // it's off the critical path (see src/engine.ts).
+    chunkSizeWarningLimit: 560,
   },
   plugins: [
     VitePWA({
@@ -36,6 +40,8 @@ export default defineConfig({
         display: "fullscreen",
         display_override: ["fullscreen", "standalone"],
         orientation: "landscape",
+        categories: ["games", "entertainment"],
+        lang: "en",
         // Dark neon palette — matches --bg-0 in styles.css and the
         // <meta name="theme-color"> in index.html, so there's no flash of
         // an unstyled color on the OS splash screen / task switcher.

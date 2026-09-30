@@ -1,5 +1,9 @@
 import type { Difficulty } from "@3d-space-pong/shared";
 import { DIFFICULTY_PROFILES } from "../game/AI.js";
+import { isTouchDevice } from "./fullscreen.js";
+
+/** How long the controls hint stays up on touch devices before fading. */
+const TOUCH_HINT_MS = 4000;
 
 export interface HudHandle {
   setScore(left: number, right: number): void;
@@ -26,8 +30,14 @@ export function mountHud(opts: {
             : `<div class="hud-mode">VS AI</div>`;
         })();
 
-  const controls =
-    opts.mode === "2p"
+  // Touch devices get touch-only copy (no keyboard to mention), and the
+  // hint fades after a few seconds so it doesn't sit over the paddles.
+  const touch = isTouchDevice();
+  const controls = touch
+    ? opts.mode === "2p"
+      ? "P1: DRAG LEFT HALF &nbsp;·&nbsp; P2: DRAG RIGHT HALF"
+      : "DRAG ANYWHERE TO MOVE"
+    : opts.mode === "2p"
       ? "P1: W/S or DRAG LEFT &nbsp;·&nbsp; P2: ↑/↓ or DRAG RIGHT &nbsp;·&nbsp; ESC"
       : "MOVE: W / S or DRAG &nbsp;·&nbsp; ESC";
 
@@ -47,6 +57,13 @@ export function mountHud(opts: {
     <div class="hud-controls">${controls}</div>
   `;
   document.body.appendChild(hud);
+
+  const fadeTimer = touch
+    ? window.setTimeout(
+        () => hud.querySelector(".hud-controls")?.classList.add("faded"),
+        TOUCH_HINT_MS,
+      )
+    : 0;
 
   const left = hud.querySelector<HTMLSpanElement>("#score-left");
   const right = hud.querySelector<HTMLSpanElement>("#score-right");
@@ -71,6 +88,7 @@ export function mountHud(opts: {
       if (right) right.textContent = String(r);
     },
     destroy() {
+      window.clearTimeout(fadeTimer);
       hud.remove();
     },
   };

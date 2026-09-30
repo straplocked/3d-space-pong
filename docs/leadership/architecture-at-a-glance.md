@@ -27,7 +27,7 @@
 ## Data flow for a single match (the hot path)
 
 1. Web client requests `/game?mode=ai&difficulty=pro`.
-2. Client-side: lifecycle orchestrator constructs a three.js `PongGame`, wires the HUD + pause + fullscreen, and awaits the match promise.
+2. Client-side: lifecycle orchestrator loads the three.js engine chunk (lazy — prefetched in the background after the menu paints, keeping the initial download ~104 kB), constructs a `PongGame`, wires the HUD + pause + fullscreen (+ wake lock and auto-pause on mobile), and awaits the match promise.
 3. Player plays until a side reaches 7 points (or quits, which discards the match).
 4. Client `POST /api/matches { userId, difficulty, outcome, playerScore, aiScore, durationMs }`.
 5. Server validates, verifies user exists, inserts row.

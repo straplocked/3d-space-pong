@@ -33,6 +33,6 @@ For developers reading or changing the code.
   - [Dev panel overview](./web/devpanel-overview.md)
   - [Dev panel controls](./web/devpanel-controls.md)
   - [Dev panel persistence](./web/devpanel-persistence.md)
-- [UI screens](./web/ui-screens.md) — menu, signup, leaderboard, game-over, pause, HUD, idle, rotate prompt, attract.
+- [UI screens](./web/ui-screens.md) — menu, signup, leaderboard, game-over, pause, HUD, idle, orientation guard, install button / offline pill, engine error, wake lock, attract.
 - [Content / quips](./web/content-quips.md)
 - [Audio (Web Audio SFX)](./web/audio.md)

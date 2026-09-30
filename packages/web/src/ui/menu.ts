@@ -1,6 +1,7 @@
 import { go } from "../router.js";
 import { sfx } from "../audio/sound.js";
 import { mountFullscreenToggle } from "./fullscreenToggle.js";
+import { mountInstallButton } from "./pwa.js";
 
 export function renderMenu(root: HTMLElement): void {
   const audioOn = sfx.isEnabled();
@@ -74,5 +75,8 @@ export function renderMenu(root: HTMLElement): void {
   // left. Hides itself when unsupported or already running as an
   // installed PWA.
   const toggles = root.querySelector<HTMLElement>(".card-toggles");
-  if (toggles) mountFullscreenToggle(toggles);
+  if (toggles) {
+    mountFullscreenToggle(toggles);
+    mountInstallButton(toggles);
+  }
 }

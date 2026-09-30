@@ -29,7 +29,7 @@ The game loop (`PongGame.updatePaddles`) picks which accessor to call based on `
 
 ### UI-touch filtering
 
-The subtlety: we listen at the **window level** because the game canvas is often obscured by overlays (HUD, pause card, rotate prompt). But that means we'd also intercept touches meant for buttons. If we called `preventDefault()` on those, mobile browsers cancel the subsequent synthetic click, and buttons become untappable.
+The subtlety: we listen at the **window level** because the game canvas is often obscured by overlays (HUD, pause card, orientation-guard overlay). But that means we'd also intercept touches meant for buttons. If we called `preventDefault()` on those, mobile browsers cancel the subsequent synthetic click, and buttons become untappable.
 
 Fix: `isUiTouch(e)` returns `true` when the event target matches:
 ```
@@ -66,7 +66,8 @@ Both `player1Axis()` and `player2Axis()` return `-1` for "up on screen." This ma
 
 ## Interactions with other modules
 
+- **HUD touch hint:** on touch devices the HUD shows touch-only copy (`DRAG ANYWHERE TO MOVE`, or `P1: DRAG LEFT HALF · P2: DRAG RIGHT HALF` in 2P) that fades after 4 s — see [ui-screens.md](./ui-screens.md#hud).
 - **Pause / menu touches:** the pause button ([ui/hud.ts](../../../packages/web/src/ui/hud.ts)) attaches both `click` and `touchstart` listeners and calls `preventDefault()` + `stopPropagation()`. Combined with `isUiTouch`, a mobile tap on the pause glyph never bleeds into the paddle-drag code.
 - **Audio unlock** ([main.ts](../../../packages/web/src/main.ts)): separate global listeners for `pointerdown`, `keydown`, `touchstart` unlock the Web Audio context on first gesture. These are independent of the Input class.
 - **Attract dismissal** ([ui/attract.ts](../../../packages/web/src/ui/attract.ts)): attract mode listens for `keydown`, `mousedown`, `touchstart` with a 250 ms arming delay, not via the Input class — attract mode is not attached to a game.
-- **Fullscreen / orientation** ([ui/fullscreen.ts](../../../packages/web/src/ui/fullscreen.ts), [ui/fullscreenToggle.ts](../../../packages/web/src/ui/fullscreenToggle.ts)): separate from the Input class entirely. `main.ts` auto-triggers fullscreen + landscape lock on touch devices when entering `/game`; a manual **FULLSCREEN** button on the menu (mounted by `fullscreenToggle.ts`) wraps the same helpers for an explicit toggle, and hides itself when the Fullscreen API is unsupported or the app is already running installed (`display-mode: fullscreen` / `standalone`).
+- **Fullscreen / orientation** ([ui/fullscreen.ts](../../../packages/web/src/ui/fullscreen.ts), [ui/fullscreenToggle.ts](../../../packages/web/src/ui/fullscreenToggle.ts)): separate from the Input class entirely. `main.ts` auto-triggers fullscreen + landscape lock on touch devices when entering `/game`, and the app-wide orientation guard ([ui/rotate.ts](../../../packages/web/src/ui/rotate.ts)) covers every screen with a rotate overlay in portrait on coarse-pointer touch devices (see [ui-screens.md](./ui-screens.md#orientation-guard)); a manual **FULLSCREEN** button on the menu (mounted by `fullscreenToggle.ts`) wraps the same helpers for an explicit toggle, and hides itself when the Fullscreen API is unsupported or the app is already running installed (`display-mode: fullscreen` / `standalone`).
