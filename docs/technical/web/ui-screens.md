@@ -9,7 +9,7 @@ Sources: [packages/web/src/ui/](../../../packages/web/src/ui/).
 Source: [ui/menu.ts](../../../packages/web/src/ui/menu.ts).
 
 `renderMenu(root)` writes a terminal-style card with:
-- An audio toggle in the corner (`sfx.setEnabled`, re-renders the card to update the label).
+- A `.card-toggles` group in the top-right corner (kept off the "window chrome" title bar text on the left): an audio toggle (`sfx.setEnabled`, re-renders the card to update the label) and a fullscreen toggle, mounted via `mountFullscreenToggle()` from [ui/fullscreenToggle.ts](../../../packages/web/src/ui/fullscreenToggle.ts). The fullscreen button hides itself when unsupported or already running as an installed PWA — see [input.md](./input.md#interactions-with-other-modules).
 - Title + tagline.
 - Primary buttons: **Fight The Machine** → `/signup`, **Betray a Friend** → `/game?mode=2p`, **Hall of Shame** → `/leaderboard`.
 - Divider + tertiary row: **GFX Tuning** → `/tuning`, **Attract Mode** → `/attract`.

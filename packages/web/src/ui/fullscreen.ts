@@ -105,3 +105,52 @@ export async function leaveGameplayViewport(): Promise<void> {
   unlockOrientation();
   await exitFullscreen();
 }
+
+/** True if the Fullscreen API (standard or webkit-prefixed) exists at all. */
+export function isFullscreenSupported(): boolean {
+  const anyDoc = document as Document & {
+    webkitFullscreenEnabled?: boolean;
+  };
+  return !!(
+    document.fullscreenEnabled ||
+    anyDoc.webkitFullscreenEnabled ||
+    typeof document.documentElement.requestFullscreen === "function"
+  );
+}
+
+/** True if *any* element on the page is currently the fullscreen element. */
+export function isFullscreenActive(): boolean {
+  const anyDoc = document as Document & {
+    webkitFullscreenElement?: Element | null;
+  };
+  return !!(document.fullscreenElement || anyDoc.webkitFullscreenElement);
+}
+
+/**
+ * True when the app is already running "installed" in its own top-level
+ * window — launched from a homescreen/desktop icon as a fullscreen or
+ * standalone PWA (per our manifest's `display_override`). In that mode a
+ * manual fullscreen toggle is redundant (there's no browser chrome to hide),
+ * so callers use this to hide the button.
+ */
+export function isInstalledDisplayMode(): boolean {
+  if (typeof window.matchMedia !== "function") return false;
+  return (
+    window.matchMedia("(display-mode: fullscreen)").matches ||
+    window.matchMedia("(display-mode: standalone)").matches
+  );
+}
+
+/** Toggle fullscreen on <html>, swallowing any rejection (denied/blocked). */
+export async function toggleFullscreen(): Promise<void> {
+  if (isFullscreenActive()) {
+    await exitFullscreen();
+  } else {
+    await enterFullscreen();
+    // Best-effort landscape lock once the fullscreen transition settles;
+    // errors (unsupported / not permitted outside a user gesture) are
+    // swallowed inside lockLandscape itself.
+    await new Promise((r) => setTimeout(r, 60));
+    await lockLandscape();
+  }
+}

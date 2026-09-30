@@ -80,6 +80,21 @@ async function main() {
       root: webRoot,
       prefix: "/",
       wildcard: false,
+      setHeaders: (res, filePath) => {
+        // The default mime db doesn't know `.webmanifest`, and browsers
+        // are strict about the PWA manifest's content-type — without this
+        // it gets served as application/octet-stream and gets ignored.
+        if (filePath.endsWith(".webmanifest")) {
+          res.setHeader("Content-Type", "application/manifest+json");
+        }
+        // The service worker file must never be served from a stale
+        // cache — browsers already re-check it periodically, but an
+        // intermediary (or the browser's HTTP cache) caching an old
+        // version would prevent updated app shells from ever activating.
+        if (filePath.endsWith("/sw.js") || filePath.endsWith("\\sw.js")) {
+          res.setHeader("Cache-Control", "no-cache");
+        }
+      },
     });
     // SPA fallback to index.html for non-API routes.
     app.setNotFoundHandler((request, reply) => {

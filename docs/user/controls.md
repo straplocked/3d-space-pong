@@ -12,11 +12,17 @@ In 1P mode the AI controls the right paddle — you don't.
 
 ## Touch
 
-Drag anywhere on the game arena to move your paddle. Your finger's vertical position on the screen maps directly to the paddle's vertical position in the arena.
+- **1P vs AI:** drag anywhere on the game arena to move your paddle. Your finger's vertical position on the screen maps directly to the paddle's vertical position in the arena.
+- **2P local:** the screen is split down the middle — dragging on the **left half** moves player 1's paddle, dragging on the **right half** moves player 2's. Two thumbs, two paddles, at once.
 
+Either way:
 - Fast drag = instant paddle move (there's no smoothing — 1:1 position control).
 - Lift your finger → paddle stays where you left it.
-- Touches on buttons (pause, audio toggle, any menu button) do **not** move the paddle. You can tap buttons safely without the paddle jumping.
+- Touches on buttons (pause, audio toggle, fullscreen toggle, any menu button) do **not** move the paddle. You can tap buttons safely without the paddle jumping.
+
+## Fullscreen
+
+A **FULLSCREEN** button on the main menu toggles the browser's Fullscreen API on `<html>`, and on mobile also tries to lock the screen orientation to landscape. It's hidden automatically when the browser doesn't support fullscreen, or when the game is already running installed as a fullscreen app (see [Getting started](./getting-started.md#installing-as-an-app)).
 
 ## Pause and quit
 

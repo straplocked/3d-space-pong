@@ -5,18 +5,23 @@
  *   P2 keyboard: ArrowUp / ArrowDown
  *   Pause:       Escape (both modes)
  *
- *   Mobile / touch: touching and dragging anywhere on the canvas maps
- *   the finger Y to the human paddle Y. Works for 1P vs AI on phones.
+ *   Mobile / touch, 1P vs AI: touching and dragging anywhere on the canvas
+ *   maps the finger Y to the human paddle Y.
+ *
+ *   Mobile / touch, 2P local: each active touch is bucketed by which half
+ *   of the screen it started on — left half drags the left paddle, right
+ *   half drags the right paddle — so two thumbs can each own a side.
  *
  * Keyboard state is polled each frame (tracked in a Set). Touch state is
- * stored as a normalized 0..1 Y coordinate (0 = top of viewport).
+ * tracked per active touch (by identifier) as {x, normalized-0..1 y}, so
+ * multiple simultaneous touches can be told apart by screen half.
  * Escape is edge-triggered: the game asks `consumeEscape()` once per frame
  * and the Input resets the flag so a single press fires a single action.
  */
 export class Input {
   private keys = new Set<string>();
   private escapePressed = false;
-  private touchY: number | null = null;
+  private touches = new Map<number, { x: number; y: number }>();
 
   private onKeyDown = (e: KeyboardEvent) => {
     this.keys.add(e.code);
@@ -57,25 +62,31 @@ export class Input {
 
   private onTouchStart = (e: TouchEvent) => {
     if (this.isUiTouch(e)) return; // let the UI handle it normally
-    if (e.touches.length > 0) {
-      const t = e.touches[0]!;
-      this.touchY = t.clientY / window.innerHeight;
-      e.preventDefault();
+    for (const t of Array.from(e.changedTouches)) {
+      this.touches.set(t.identifier, {
+        x: t.clientX,
+        y: t.clientY / window.innerHeight,
+      });
     }
+    e.preventDefault();
   };
 
   private onTouchMove = (e: TouchEvent) => {
     if (this.isUiTouch(e)) return;
-    if (e.touches.length > 0) {
-      const t = e.touches[0]!;
-      this.touchY = t.clientY / window.innerHeight;
-      e.preventDefault();
+    for (const t of Array.from(e.changedTouches)) {
+      if (this.touches.has(t.identifier)) {
+        this.touches.set(t.identifier, {
+          x: t.clientX,
+          y: t.clientY / window.innerHeight,
+        });
+      }
     }
+    e.preventDefault();
   };
 
   private onTouchEnd = (e: TouchEvent) => {
-    if (e.touches.length === 0) {
-      this.touchY = null;
+    for (const t of Array.from(e.changedTouches)) {
+      this.touches.delete(t.identifier);
     }
   };
 
@@ -99,7 +110,7 @@ export class Input {
     window.removeEventListener("touchcancel", this.onTouchEnd);
     this.keys.clear();
     this.escapePressed = false;
-    this.touchY = null;
+    this.touches.clear();
   }
 
   /** Returns -1, 0, or +1 for player 1 vertical movement (keyboard). */
@@ -119,12 +130,31 @@ export class Input {
   }
 
   /**
-   * Touch Y normalized to 0..1 from top of viewport, or null if no touch
-   * is currently active. Used by PongGame to directly set the human paddle
-   * Y on mobile.
+   * Touch Y normalized to 0..1 from top of viewport, from whichever touch
+   * is currently active (first one tracked), or null if none. Used for 1P
+   * vs AI, where dragging anywhere on screen controls the one human paddle.
    */
   getTouchY(): number | null {
-    return this.touchY;
+    const first = this.touches.values().next();
+    return first.done ? null : first.value.y;
+  }
+
+  /**
+   * Touch Y normalized to 0..1, restricted to touches that started on the
+   * given screen half — `"left"` for x < innerWidth/2, `"right"` otherwise.
+   * Used for 2P local so each player's thumb only drives their own paddle.
+   * Returns null if no matching touch is currently active.
+   */
+  getTouchYForSide(side: "left" | "right"): number | null {
+    const halfW = window.innerWidth / 2;
+    let result: number | null = null;
+    for (const t of this.touches.values()) {
+      const onLeft = t.x < halfW;
+      if ((side === "left") === onLeft) {
+        result = t.y;
+      }
+    }
+    return result;
   }
 
   /**

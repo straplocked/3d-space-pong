@@ -6,8 +6,8 @@ Maintenance spec for this project's documentation. Every time the "doc update" p
 
 ## Run counter
 
-**Run count: 1**
-**Last run: 2026-04-17**
+**Run count: 2**
+**Last run: 2026-09-29**
 
 *(Only the counter and last-run date change here per run. Change narrative goes in `docs/CHANGELOG.md`.)*
 

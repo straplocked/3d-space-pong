@@ -23,7 +23,7 @@ Four actions:
 | **GFX Tuning** | Fine-tune bloom, lighting, fog, etc. while an AI-vs-AI match rolls. |
 | **Attract Mode** | Jump back to the demo loop manually. |
 
-Plus a **SOUND: ON / OFF** toggle in the corner. Your choice is remembered between sessions.
+Plus a **SOUND: ON / OFF** toggle and a **FULLSCREEN** toggle in the corner. Sound is remembered between sessions. The fullscreen button hides itself if your browser doesn't support the Fullscreen API, or if you've already installed the game as an app (see below) — there's no browser chrome to hide in that case.
 
 ## Signing up (1P vs AI only)
 
@@ -46,9 +46,15 @@ Once signed up, you're remembered on this device via local browser storage. You 
 
 ## On mobile
 
-The game requests fullscreen + landscape orientation on mobile devices. If your phone is portrait, you'll see a rotate-to-landscape prompt. iOS Safari can't lock orientation programmatically, so you'll need to rotate yourself.
+The game requests fullscreen + landscape orientation on mobile devices. If your phone is portrait, you'll see a rotate-to-landscape prompt. iOS Safari can't lock orientation programmatically, so you'll need to rotate yourself. You can also trigger fullscreen manually any time from the **FULLSCREEN** button on the main menu.
 
-Touch controls: drag anywhere on the arena to move your paddle. Your finger Y controls the paddle directly — no virtual joystick.
+Touch controls:
+- **1P vs AI** — drag anywhere on the arena to move your paddle. Your finger Y controls the paddle directly — no virtual joystick.
+- **2P local** — each half of the screen is its own paddle: drag the left half for player 1, the right half for player 2. Both thumbs can be down at once.
+
+### Installing as an app
+
+The site is an installable Progressive Web App. From your phone's browser menu, choose **"Add to Home Screen"** (iOS Safari) or **"Install app"** (Android Chrome). Once installed, it opens fullscreen with its own icon — no address bar, no browser chrome — and the local game modes (menu, 2P local, GFX tuning, attract mode) keep working even offline, since the app shell is cached on install. Signing up, recording AI matches, and the leaderboard still need a network connection, since those talk to the server's `/api/*` routes.
 
 ## What gets recorded
 

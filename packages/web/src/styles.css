@@ -1104,7 +1104,7 @@ body::after {
 
 .hud-score {
   position: absolute;
-  top: 1.2rem;
+  top: calc(1.2rem + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1124,8 +1124,8 @@ body::after {
 
 .hud-mode {
   position: absolute;
-  top: 1.3rem;
-  left: 1.3rem;
+  top: calc(1.3rem + env(safe-area-inset-top));
+  left: calc(1.3rem + env(safe-area-inset-left));
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -1158,7 +1158,7 @@ body::after {
 
 .hud-controls {
   position: absolute;
-  bottom: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.72rem;
@@ -1397,8 +1397,8 @@ body::after {
 
 .hud-pause-btn {
   position: absolute;
-  top: 1.3rem;
-  right: 1.3rem;
+  top: calc(1.3rem + env(safe-area-inset-top));
+  right: calc(1.3rem + env(safe-area-inset-right));
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -1477,13 +1477,22 @@ body::after {
 }
 
 /* =============================================================
-   AUDIO TOGGLE (menu card corner)
+   CARD TOGGLES (audio + fullscreen), grouped top-right so neither
+   collides with the "window chrome" title bar text on the left.
    ============================================================= */
 
-.audio-toggle {
+.card-toggles {
   position: absolute;
   top: 0.42rem;
   right: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 2;
+}
+
+.audio-toggle,
+.fullscreen-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -1526,6 +1535,26 @@ body::after {
 .audio-toggle .audio-icon {
   font-size: 0.82rem;
   line-height: 1;
+}
+
+.fullscreen-toggle:hover,
+.fullscreen-toggle:focus-visible {
+  color: var(--term-green);
+  border-color: var(--term-green);
+  background: rgba(0, 255, 65, 0.1);
+  outline: none;
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+}
+
+.fullscreen-toggle .fullscreen-icon {
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .fullscreen-toggle .fullscreen-label {
+    display: none; /* icon-only on very small cards to avoid title overlap */
+  }
 }
 
 /* =============================================================
@@ -2258,14 +2287,14 @@ body::after {
 
   /* HUD tweaks so thumbs don't obscure the score */
   .hud-score {
-    top: 0.8rem;
+    top: calc(0.8rem + env(safe-area-inset-top));
     font-size: 2rem;
     gap: 1.3rem;
   }
 
   .hud-mode {
-    top: 0.8rem;
-    left: 0.8rem;
+    top: calc(0.8rem + env(safe-area-inset-top));
+    left: calc(0.8rem + env(safe-area-inset-left));
     font-size: 0.68rem;
     padding: 0.35rem 0.55rem;
     max-width: 55%;
@@ -2276,8 +2305,8 @@ body::after {
   }
 
   .hud-pause-btn {
-    top: 0.8rem;
-    right: 0.8rem;
+    top: calc(0.8rem + env(safe-area-inset-top));
+    right: calc(0.8rem + env(safe-area-inset-right));
     padding: 0.5rem 0.7rem;
     font-size: 0.68rem;
   }
@@ -2287,7 +2316,7 @@ body::after {
   }
 
   .hud-controls {
-    bottom: 0.7rem;
+    bottom: calc(0.7rem + env(safe-area-inset-bottom));
     font-size: 0.6rem;
     padding: 0.3rem 0.55rem;
   }

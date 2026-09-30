@@ -28,6 +28,10 @@ The SQLite database is persisted in `./data/pong.db` via a bind mount — `docke
 4. Bind-mount `./data → /app/data` so the database survives container restarts.
 5. Optional: put it behind your reverse proxy of choice.
 
+## Progressive Web App
+
+The server also serves a web app manifest (`/manifest.webmanifest`, `Content-Type: application/manifest+json`) and a service worker (`/sw.js`, `Cache-Control: no-cache` so updates are never stuck behind a stale cache). Players can install the site from their browser as an app; the built app shell is precached for offline play of the local game modes. No extra reverse-proxy configuration is needed — both files are served from the same origin as everything else. See [docs/technical/web/router-lifecycle.md](../technical/web/router-lifecycle.md) and [docs/technical/server/environment.md](../technical/server/environment.md#static-file-headers) for implementation details.
+
 ## Environment variables
 
 See [.env.example](../../.env.example). All optional — defaults work out of the box.

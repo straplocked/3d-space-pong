@@ -1,20 +1,23 @@
 import { go } from "../router.js";
 import { sfx } from "../audio/sound.js";
+import { mountFullscreenToggle } from "./fullscreenToggle.js";
 
 export function renderMenu(root: HTMLElement): void {
   const audioOn = sfx.isEnabled();
   root.innerHTML = `
     <section class="card">
-      <button
-        type="button"
-        class="audio-toggle"
-        data-action="audio"
-        aria-label="Toggle sound"
-        aria-pressed="${audioOn ? "true" : "false"}"
-      >
-        <span class="audio-icon" aria-hidden="true">${audioOn ? "♪" : "×"}</span>
-        <span class="audio-label">SOUND: ${audioOn ? "ON" : "OFF"}</span>
-      </button>
+      <div class="card-toggles">
+        <button
+          type="button"
+          class="audio-toggle"
+          data-action="audio"
+          aria-label="Toggle sound"
+          aria-pressed="${audioOn ? "true" : "false"}"
+        >
+          <span class="audio-icon" aria-hidden="true">${audioOn ? "♪" : "×"}</span>
+          <span class="audio-label">SOUND: ${audioOn ? "ON" : "OFF"}</span>
+        </button>
+      </div>
       <h1>3D SPACE PONG</h1>
       <p class="tagline">A pong game that keeps receipts.</p>
       <button class="btn" data-action="ai">Fight The Machine</button>
@@ -65,4 +68,11 @@ export function renderMenu(root: HTMLElement): void {
     // Re-render to update the label/icon.
     renderMenu(root);
   });
+
+  // Grouped with the audio toggle in the top-right corner so neither
+  // button collides with the card's "window chrome" title bar text on the
+  // left. Hides itself when unsupported or already running as an
+  // installed PWA.
+  const toggles = root.querySelector<HTMLElement>(".card-toggles");
+  if (toggles) mountFullscreenToggle(toggles);
 }

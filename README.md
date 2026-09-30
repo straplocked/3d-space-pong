@@ -6,11 +6,12 @@ Open-source 3D Space Pong, built with [three.js](https://threejs.org/) for the g
 
 ## Features
 
-- 🎮 **Two modes** — 1P vs AI, 2P local (split keyboard)
+- 🎮 **Two modes** — 1P vs AI, 2P local (split keyboard, or split-screen touch on one phone)
 - 🤖 **Five AI difficulty levels** — from Rookie ("has never held a paddle before") to Legend ("is the source code")
 - 💀 **Wins AND losses tracked** — losing to Rookie earns you a permanent badge of shame
 - 🌌 **Parallax background** — layered depth on every screen via parallax.js
 - ✨ **Bloom post-processing** — neon vibe via three.js `UnrealBloomPass`
+- 📱 **Installable PWA** — add it to your homescreen, play fullscreen, works offline for local modes
 - 📦 **Dockerized** — single container, single bind mount, perfect for self-hosting on Unraid
 - 🗄️ **SQLite by default** — zero-config, single file, runs anywhere
 - 🛠️ **Drizzle ORM** — type-safe schema, swappable to Postgres later
@@ -39,6 +40,17 @@ docker run --rm --network host \
   bash -c "npm init -y >/dev/null && npm install --no-save playwright@1.55.0 >/dev/null && \
     node /work/scripts/screenshots.mjs --base-url=http://localhost:3000 --out-dir=/out"
 ```
+
+## Install as an app
+
+The site is an installable Progressive Web App:
+
+- **Android / desktop Chrome** — menu → "Install app". **iOS Safari** — Share → "Add to Home Screen".
+- Launches fullscreen, landscape-oriented, with its own icon — no browser chrome.
+- The **FULLSCREEN** button on the main menu also toggles fullscreen on demand from inside a normal browser tab (it hides itself once you've already installed the app, or if the browser doesn't support the Fullscreen API).
+- The built app shell is precached by a service worker, so the menu, 2P local, GFX tuning, and attract mode all keep working offline. Signup, AI match recording, and the leaderboard still need a connection (they talk to `/api/*`, which the service worker always sends straight to the network).
+
+See [docs/user/getting-started.md](docs/user/getting-started.md#installing-as-an-app) for the player-facing version of this, and [docs/technical/architecture.md](docs/technical/architecture.md) for how the manifest/service worker are built and served.
 
 ## Tech stack
 

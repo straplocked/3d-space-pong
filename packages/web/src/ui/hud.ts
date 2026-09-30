@@ -28,7 +28,7 @@ export function mountHud(opts: {
 
   const controls =
     opts.mode === "2p"
-      ? "P1: W / S &nbsp;·&nbsp; P2: ↑ / ↓ &nbsp;·&nbsp; ESC"
+      ? "P1: W/S or DRAG LEFT &nbsp;·&nbsp; P2: ↑/↓ or DRAG RIGHT &nbsp;·&nbsp; ESC"
       : "MOVE: W / S or DRAG &nbsp;·&nbsp; ESC";
 
   hud.innerHTML = `

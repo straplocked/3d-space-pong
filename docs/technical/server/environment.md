@@ -61,6 +61,15 @@ Other runtime specifics:
 - Entrypoint: `tini --` (signal handling), CMD: `node dist/index.js`.
 - WORKDIR at runtime: `/app/packages/server` (so relative paths resolve correctly).
 
+## Static file headers
+
+`@fastify/static`'s default mime lookup doesn't know the `.webmanifest` extension, and would serve it as `application/octet-stream` — several browsers ignore a manifest served that way. [index.ts](../../../packages/server/src/index.ts) passes a `setHeaders` callback to the plugin registration to fix that up per-file:
+
+- `*.webmanifest` → `Content-Type: application/manifest+json`
+- `sw.js` → `Cache-Control: no-cache` (the service worker file must always be revalidated; a cached stale copy would block newer app-shell versions from ever activating)
+
+Everything else falls through to `@fastify/static`'s normal mime-based content-type and caching behavior. The SPA fallback (`setNotFoundHandler` → `index.html`) is unaffected — it only applies to non-`/api/*`, non-static-file paths.
+
 ## Compose
 
 See [docker-compose.yml](../../../docker-compose.yml). One service `app`:

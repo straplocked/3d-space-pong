@@ -827,7 +827,12 @@ export class PongGame {
       // the paddle tracks the finger Y directly (1:1 position control).
       // Keyboard uses a smoothed velocity model so short taps produce
       // small, precise moves instead of lurching.
-      const touchY = this.input.getTouchY();
+      // In 2P local, each side only tracks touches that started on its
+      // half of the screen, so two thumbs don't fight over one paddle.
+      const touchY =
+        this.mode.kind === "local2p"
+          ? this.input.getTouchYForSide("left")
+          : this.input.getTouchY();
       if (touchY !== null) {
         const targetY = (0.5 - touchY) * ARENA_HEIGHT;
         this.leftPaddle.position.y = THREE.MathUtils.clamp(
@@ -859,22 +864,35 @@ export class PongGame {
 
     // Right paddle = human player 2, AI, or demo AI.
     if (this.mode.kind === "local2p") {
-      const p2 = this.input.player2Axis();
-      this.rightPaddleVel = this.stepPaddleVelocity(
-        this.rightPaddleVel,
-        p2,
-        dt,
-      );
-      this.rightPaddle.position.y = THREE.MathUtils.clamp(
-        this.rightPaddle.position.y - this.rightPaddleVel * dt,
-        -halfH,
-        halfH,
-      );
-      if (
-        this.rightPaddle.position.y === halfH ||
-        this.rightPaddle.position.y === -halfH
-      ) {
+      // Touch (right half of screen) takes priority over keyboard, same
+      // as player 1's left-half touch above.
+      const touchY = this.input.getTouchYForSide("right");
+      if (touchY !== null) {
+        const targetY = (0.5 - touchY) * ARENA_HEIGHT;
+        this.rightPaddle.position.y = THREE.MathUtils.clamp(
+          targetY,
+          -halfH,
+          halfH,
+        );
         this.rightPaddleVel = 0;
+      } else {
+        const p2 = this.input.player2Axis();
+        this.rightPaddleVel = this.stepPaddleVelocity(
+          this.rightPaddleVel,
+          p2,
+          dt,
+        );
+        this.rightPaddle.position.y = THREE.MathUtils.clamp(
+          this.rightPaddle.position.y - this.rightPaddleVel * dt,
+          -halfH,
+          halfH,
+        );
+        if (
+          this.rightPaddle.position.y === halfH ||
+          this.rightPaddle.position.y === -halfH
+        ) {
+          this.rightPaddleVel = 0;
+        }
       }
     } else if (this.aiController) {
       const target = this.aiController.computeTargetY(

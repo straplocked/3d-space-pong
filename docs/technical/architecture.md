@@ -35,6 +35,8 @@ Workspace package name prefix: `@3d-space-pong/*`. The web and server packages d
 
 The server has two responsibilities: serve the built web bundle and serve `/api/*`. A single-page-app fallback in [packages/server/src/index.ts](../../packages/server/src/index.ts) returns `index.html` for any non-API route so the hash router can take over.
 
+The web bundle is also a PWA: Vite's build (via `vite-plugin-pwa`, `strategies: "generateSW"`) emits `manifest.webmanifest` and `sw.js` alongside the rest of `web/dist/`, precaching the hashed app shell for offline play of the local game modes and routing `/api/*` network-only. The server sets the manifest's content-type and the service worker's cache headers explicitly — see [environment.md#static-file-headers](./server/environment.md#static-file-headers).
+
 ## Data flow for a single match
 
 1. Player opens the site → Vite/Fastify serves `web/dist/index.html`.
