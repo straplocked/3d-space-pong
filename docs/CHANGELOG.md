@@ -4,6 +4,16 @@ Dated log of documentation changes, one entry per DOC_UPDATE run. See [../DOC_UP
 
 ---
 
+## Run #6 — 2026-10-01
+
+**Fullscreen starts attract mode and stays on (task 847); CI Test step is a hard gate (task 841).**
+
+- `packages/web/src/ui/fullscreen.ts` — fullscreen ownership: automatic (entered by a match) vs player-chosen. `leaveGameplayViewport()` only exits automatic fullscreen; new `isFullscreenAutoEntered()`.
+- `packages/web/src/main.ts` — global `fullscreenchange` listener routes a player-chosen fullscreen on a non-match screen to `/attract`.
+- `packages/web/test/fullscreenOwnership.test.ts` — 4 tests (73 total).
+- `.github/workflows/ci.yml` — Test step no longer `continue-on-error`.
+- Docs: `docs/technical/web/router-lifecycle.md` (new Fullscreen starts attract mode section, step 5), `docs/technical/web/ui-screens.md` (Fullscreen helpers).
+
 ## Run #5 — 2026-09-30
 
 **Hall of Fame leaderboard tab, Unraid template + non-colliding default port, dark-only decision documented, online-play scoping (research only).**

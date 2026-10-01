@@ -105,7 +105,7 @@ Helpers:
 - `isFullscreenSupported()` / `isFullscreenActive()` / `isInstalledDisplayMode()` / `toggleFullscreen()` — used by the menu toggle, the orientation guard and `pwa.ts`.
 - `enterFullscreen(el)` / `exitFullscreen()` — with webkit fallbacks; swallow errors.
 - `lockLandscape()` / `unlockOrientation()` — no-ops on iOS (unsupported); swallow errors.
-- `enterGameplayViewport()` / `leaveGameplayViewport()` — composite helpers called from `/game`. Short 60 ms delay between fullscreen and lock because the orientation API requires fullscreen to have landed.
+- `enterGameplayViewport()` / `leaveGameplayViewport()` — composite helpers called from `/game`. Short 60 ms delay between fullscreen and lock because the orientation API requires fullscreen to have landed. Fullscreen has an owner: `enterGameplayViewport()` marks it automatic (before the request, so `fullscreenchange` listeners already see it), `toggleFullscreen()` or an external exit clears the mark, and `leaveGameplayViewport()` only exits fullscreen it entered. `isFullscreenAutoEntered()` exposes the mark; main.ts uses it to start attract mode on a player-chosen fullscreen.
 
 ## Orientation guard
 

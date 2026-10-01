@@ -63,7 +63,7 @@ Called at the top of every route handler. Runs in this order:
 2. Wipe `#app`'s innerHTML.
 3. Dismiss and null out each active handle: dev panel → attract → game (`dispose()`) → HUD → pause → wake lock (`release()`). Each handle is responsible for removing its own DOM nodes and listeners.
 4. Run and empty `routeCleanups`, then bump `routeToken` so any in-flight async handler knows it is stale.
-5. If leaving gameplay, call `leaveGameplayViewport()` — releases orientation lock and exits fullscreen on mobile — and `enableParallax()` (parallax is disabled on touch devices during a match). Replays (staying on `/game`) keep fullscreen and landscape.
+5. If leaving gameplay, call `leaveGameplayViewport()` — releases orientation lock and exits fullscreen on mobile, but only when the match entered fullscreen itself; fullscreen the player chose (menu toggle, GO FULLSCREEN) stays on — and `enableParallax()` (parallax is disabled on touch devices during a match). Replays (staying on `/game`) keep fullscreen and landscape.
 6. Remove the `active` class from the game canvas.
 
 The order matters: dismiss the attract overlay *before* disposing its demo game so the teardown path doesn't race with animation-loop callbacks.
@@ -140,3 +140,7 @@ Three global listeners (`pointerdown`, `keydown`, `touchstart`) each call `sfx.u
 ## Console easter egg
 
 `printConsoleEasterEgg()` runs once on boot from [content/quips.ts](../../../packages/web/src/content/quips.ts). Prints an ASCII paddle + ball plus "I see you found the dev tools. Impressive. Still won't help you beat Legend." — styled with CSS in the `console.log` template so it renders cyan/monospace in DevTools.
+
+## Fullscreen starts attract mode
+
+A global `fullscreenchange` listener in [main.ts](../../../packages/web/src/main.ts) sends the player to `/attract` whenever fullscreen turns on from a non-match route (anything but `/game`, `/attract`, `/tuning`) and the match did not enter it itself (`isFullscreenAutoEntered()`). Dismissing attract goes to `/menu` and fullscreen stays on. Browser-level F11 fullscreen does not fire the event and is unaffected.
