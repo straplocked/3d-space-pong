@@ -42,8 +42,53 @@ jobs:
       - name: Build
         run: pnpm build
 
+  e2e:
+    name: Browser tests (Playwright)
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Pinned to the exact @playwright/test version in package.json so the
+    # bundled browser matches what `pnpm exec playwright test` expects.
+    container:
+      image: mcr.microsoft.com/playwright:v1.55.1-noble
+      options: --ipc=host
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (Playwright runs against the built server + web bundle)
+        run: pnpm build
+
+      - name: Run Playwright suite
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   publish:
     name: Build & push image
+    # NOTE (task 842): `e2e` intentionally is NOT in this list yet. It's a
+    # new job — it needs to pass once in CI before it gates `publish`.
+    # Flip this to `needs: [gate, e2e]` once that's happened.
     needs: gate
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
