@@ -19,7 +19,7 @@ Four actions:
 | --- | --- |
 | **Fight The Machine** | 1P vs AI. Sends you to signup (first time) or straight to the difficulty picker (returning). |
 | **Betray a Friend** | 2P local. Both paddles, one keyboard, no signup required. |
-| **Hall of Shame** | Shows the leaderboard — everyone's losses against the AI. |
+| **Leaderboards** | Shows the leaderboard — a Hall of Fame tab (wins) and a Hall of Shame tab (losses), both against the AI. |
 | **GFX Tuning** | Fine-tune bloom, lighting, fog, etc. while an AI-vs-AI match rolls. |
 | **Attract Mode** | Jump back to the demo loop manually. |
 

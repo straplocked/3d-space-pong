@@ -11,7 +11,7 @@ One Docker container running Node 20 Alpine. No sidecars. No external data store
 - **RAM:** comfortably under 100 MB steady state. SQLite + Fastify + Node process.
 - **CPU:** negligible at rest. Traffic is sparse user actions (submit signup, submit match, fetch leaderboard).
 - **Disk:** the container image is small (Alpine base + node_modules for the server only, ~200 MB). The database grows linearly with match count — each row is ~50 bytes, so 1 million matches is roughly 50 MB.
-- **Network:** one inbound port (default 3000). No outbound dependencies at runtime.
+- **Network:** one inbound port — host default `3610`, mapped to the container's internal port `3000` (chosen to avoid colliding with other self-hosted apps that commonly default to `3000`). No outbound dependencies at runtime.
 
 ## External dependencies
 

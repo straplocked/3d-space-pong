@@ -4,7 +4,9 @@ services:
     image: 3d-space-pong:latest
     container_name: 3d-space-pong
     ports:
-      - "3000:3000"
+      # Host:container. 3610 is the non-colliding default (many self-hosted
+      # apps default to 3000); the container's internal port stays 3000.
+      - "3610:3000"
     volumes:
       - ./data:/app/data
     environment:

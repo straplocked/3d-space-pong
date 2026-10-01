@@ -6,7 +6,7 @@ One container, one port, one bind mount. SQLite means there's nothing else to ru
 
 - Docker (and Docker Compose v2).
 - A box with at least ~200 MB free for the image + a few MB for the DB.
-- A port (default `3000`).
+- A port (default host port `3610`; the container listens internally on `3000`).
 
 ## Fastest path: docker compose
 
@@ -16,15 +16,17 @@ From the repo root:
 docker compose up --build -d
 ```
 
-Then open `http://<your-server>:3000`.
+Then open `http://<your-server>:3610`. `3610` is the shipped default host-port mapping in `docker-compose.yml` — chosen so it doesn't collide with other self-hosted apps that default to `3000` (the container's own internal port, unchanged). Remap the left side of the `ports:` entry if you want a different host port.
 
 The SQLite database is persisted in `./data/pong.db` via a bind mount — `docker compose down && docker compose up` keeps your data intact. If you want a clean slate, `rm -rf ./data && docker compose up`.
 
 ## Unraid
 
+A Community Applications template is included at [`unraid/3d-space-pong.xml`](../../unraid/3d-space-pong.xml) — image `ghcr.io/straplocked/3d-space-pong:latest`, WebUI port defaulting to host `3610` → container `3000`, and an `/app/data` path mapping. Install it via Unraid's "Add Container" → template URL flow, or do it by hand:
+
 1. Clone this repo onto your server: `/mnt/user/appdata/3d-space-pong`.
 2. From that directory: `docker compose up -d --build`.
-3. Map host port `3000` to container port `3000` (or remap as you like).
+3. Map host port `3610` to container port `3000` (or remap as you like — the container's internal port should stay `3000`).
 4. Bind-mount `./data → /app/data` so the database survives container restarts.
 5. Optional: put it behind your reverse proxy of choice.
 
@@ -38,7 +40,7 @@ See [.env.example](../../.env.example). All optional — defaults work out of th
 
 | Variable | Default | Notes |
 | --- | --- | --- |
-| `PORT` | `3000` | HTTP port. |
+| `PORT` | `3000` | HTTP port **inside the container**. The host-side mapping (what you actually browse to) is set in `docker-compose.yml`'s `ports:` — default `3610:3000`. |
 | `HOST` | `0.0.0.0` | Bind address. |
 | `DB_DRIVER` | `sqlite` | Currently the only implementation. |
 | `DB_URL` | `file:/app/data/pong.db` | SQLite file path (include `file:` prefix). |

@@ -157,10 +157,10 @@ defineRoute("/signup", () => {
   renderSignup(appRoot);
 });
 
-defineRoute("/leaderboard", () => {
+defineRoute("/leaderboard", (params) => {
   clearScreen();
   idleWatcher?.resume();
-  renderLeaderboard(appRoot);
+  renderLeaderboard(appRoot, params);
 });
 
 defineRoute("/tuning", async () => {

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>3d-space-pong</Name>
+  <Repository>ghcr.io/straplocked/3d-space-pong:latest</Repository>
+  <Registry>https://ghcr.io/straplocked/3d-space-pong</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/straplocked/3d-space-pong/issues</Support>
+  <Project>https://github.com/straplocked/3d-space-pong</Project>
+  <Overview>3D Space Pong&#13;&#10;&#13;&#10;A browser-based 3D Pong game with persistent match tracking and a dry comedic voice. 1P vs five AI difficulty levels (Rookie through Legend) or 2P local on one keyboard. Every AI match is recorded -- wins AND losses -- to a combined Hall of Fame / Hall of Shame leaderboard. Installable as a PWA; local play keeps working offline.&#13;&#10;&#13;&#10;Single container, single bind mount, SQLite database. Back up by copying one file (/app/data/pong.db).&#13;&#10;&#13;&#10;The default WebUI port below is 3610 on the host -- the container listens internally on 3000, so 3610 avoids colliding with other self-hosted apps (many of which default to 3000). Remap it to whatever you like.</Overview>
+  <Category>Games:</Category>
+  <WebUI>http://[IP]:[PORT:3610]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/straplocked/3d-space-pong/main/packages/web/public/icons/icon-512.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI Port" Target="3000" Default="3610" Mode="tcp" Description="Host port mapped to the container's internal HTTP port (3000). 3610 is the non-colliding default used in production; remap freely." Type="Port" Display="always" Required="true" Mask="false">3610</Config>
+  <Config Name="App Data" Target="/app/data" Default="/mnt/user/appdata/3d-space-pong" Mode="rw" Description="Persistent SQLite database (pong.db plus its WAL sidecars). Back up by copying this folder." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/3d-space-pong</Config>
+  <Config Name="PORT" Target="PORT" Default="3000" Mode="" Description="Port the Node process listens on *inside* the container. Change the WebUI Port mapping above instead of this unless you specifically need to change the internal port too." Type="Variable" Display="advanced" Required="false" Mask="false">3000</Config>
+  <Config Name="HOST" Target="HOST" Default="0.0.0.0" Mode="" Description="Bind address inside the container." Type="Variable" Display="advanced" Required="false" Mask="false">0.0.0.0</Config>
+  <Config Name="DB_DRIVER" Target="DB_DRIVER" Default="sqlite" Mode="" Description="Database driver. Only sqlite is currently implemented." Type="Variable" Display="advanced" Required="false" Mask="false">sqlite</Config>
+  <Config Name="DB_URL" Target="DB_URL" Default="file:/app/data/pong.db" Mode="" Description="SQLite file path inside the container. Leave as-is unless you changed the App Data mount target." Type="Variable" Display="advanced" Required="false" Mask="false">file:/app/data/pong.db</Config>
+  <Config Name="LOG_LEVEL" Target="LOG_LEVEL" Default="info" Mode="" Description="Pino log level (trace|debug|info|warn|error|fatal)." Type="Variable" Display="advanced" Required="false" Mask="false">info</Config>
+</Container>

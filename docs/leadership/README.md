@@ -9,6 +9,7 @@ For stakeholders and decision-makers. Short pages, no code.
 - **[Tech stack](./tech-stack.md)** — what we use and why.
 - **[Architecture at a glance](./architecture-at-a-glance.md)** — one diagram, five bullets.
 - **[Operational footprint](./operational-footprint.md)** — what it costs to run, what it depends on.
+- **[Online play scope](./online-play-scope.md)** — research-only: options, trade-offs, and a phased recommendation for real-time multiplayer (not built).
 
 ## Elevator pitch
 
