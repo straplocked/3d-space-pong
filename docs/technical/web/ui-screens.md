@@ -11,7 +11,7 @@ Source: [ui/menu.ts](../../../packages/web/src/ui/menu.ts).
 `renderMenu(root)` writes a terminal-style card with:
 - A `.card-toggles` group in the top-right corner (kept off the "window chrome" title bar text on the left): an audio toggle (`sfx.setEnabled`, re-renders the card to update the label), a fullscreen toggle mounted via `mountFullscreenToggle()` from [ui/fullscreenToggle.ts](../../../packages/web/src/ui/fullscreenToggle.ts), and an **INSTALL** button mounted via `mountInstallButton()` from [ui/pwa.ts](../../../packages/web/src/ui/pwa.ts) (prepended to the group; see [Install button and offline pill](#install-button-and-offline-pill)). The fullscreen button hides itself when unsupported or already running as an installed PWA — see [input.md](./input.md#interactions-with-other-modules). On short landscape screens (`max-height: 500px`) the toggles collapse to icon-only.
 - Title + tagline.
-- Primary buttons: **Fight The Machine** → `/signup`, **Betray a Friend** → `/game?mode=2p`, **Hall of Shame** → `/leaderboard`.
+- Primary buttons: **Fight The Machine** → `/signup`, **Betray a Friend** → `/game?mode=2p`, **Leaderboards** → `/leaderboard` (lands on whichever tab the default resolves to — see [Leaderboard](#leaderboard) below).
 - Divider + tertiary row: **GFX Tuning** → `/tuning`, **Attract Mode** → `/attract`.
 
 Every button fires a `sfx.menuSelect` or `sfx.menuBlip` before navigating. See [audio.md](./audio.md).
@@ -38,13 +38,24 @@ Validation lives in [packages/shared/src/schemas.ts](../../../packages/shared/sr
 
 Source: [ui/leaderboard.ts](../../../packages/web/src/ui/leaderboard.ts).
 
-Single view of the Hall of Shame: `api.leaderboard({ sort: "losses", limit: 25 })`. Columns: rank, player (with badges), losses, fastest L, W/L. On server error, shows `"Couldn't reach the server."` — keeps it plain; the humor is in the content, not the error.
+Tabbed screen: **Hall of Fame** (`api.leaderboard({ sort: "wins", limit: 25 })`) and **Hall of Shame** (`api.leaderboard({ sort: "losses", limit: 25 })`), reusing the `.leaderboard-tabs` styling. `renderLeaderboard(root, params?)` reads `params.get("tab")` — `"fame"` selects the Fame tab, anything else (including no param) defaults to Shame, preserving the original deep-link shape. Switching tabs re-fetches; a `loadToken` counter discards a stale in-flight response if the player switches tabs again before it resolves.
 
-Badges:
+Columns are tab-dependent but share the row shape:
+
+| Tab | Metric column | Second stat column |
+| --- | --- | --- |
+| Fame | `WINS` | `W/L RATIO` (`row.ratio`, 2dp, or `—`) |
+| Shame | `LOSSES` | `FASTEST L` (`row.shortestLossMs / 1000`, 1dp, or `—`) |
+
+Both tabs also show rank, player name (with badges), and `W / L`. On server error, either tab shows `"Couldn't reach the server."` — keeps it plain; the humor is in the content, not the error. Empty state picks from `quips.emptyLeaderboardWins` (Fame) or `quips.emptyLeaderboardLosses` (Shame).
+
+Badges (shown on both tabs — they're not sort-dependent):
 - `🙈 ROOKIE VICTIM` if `row.lostToRookie` — at least one loss at `difficulty=rookie`.
 - `👑 LEGEND SLAYER` if `row.beatLegend` — at least one win at `difficulty=legend`.
 
 Badge semantics come from the server's `EXISTS` subqueries — see [leaderboard queries](../server/leaderboard-queries.md).
+
+[gameOver.ts](../../../packages/web/src/ui/gameOver.ts)'s "View Leaderboard" button sends `?tab=fame` after a win and `?tab=shame` after a loss.
 
 ## Game-over
 

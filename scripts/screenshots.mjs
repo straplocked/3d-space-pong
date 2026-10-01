@@ -2,18 +2,21 @@
 /**
  * Reusable Playwright screenshot capturer.
  *
- * Takes a base URL and a list of routes, and captures each one in both
- * "light" and "dark" `prefers-color-scheme`, saving PNGs to an output dir.
+ * The game is dark-only (see docs/leadership/product-overview.md and the
+ * `color-scheme: dark` meta tag in index.html) — there's no light theme to
+ * capture, so this always forces `colorScheme: "dark"`. It shoots each
+ * configured page at each configured viewport and saves
+ * `<page>-<viewport>.png`.
  *
  * Meant to be run inside the official Playwright Docker image (which ships
  * matching browser binaries), e.g.:
  *
  *   docker run --rm --network host \
+ *     -v "$PWD/scripts:/scripts:ro" \
  *     -v "$PWD/docs/assets/screenshots:/out" \
- *     -v "$PWD/scripts:/scripts" \
- *     mcr.microsoft.com/playwright:v1.55.0-noble \
+ *     mcr.microsoft.com/playwright:v1.55.1-noble \
  *     node /scripts/screenshots.mjs \
- *       --base-url=http://localhost:3600 \
+ *       --base-url=http://localhost:3712 \
  *       --out-dir=/out
  *
  * WebGL note: headless Chromium needs software GL to render three.js canvases
@@ -21,10 +24,11 @@
  * `--use-gl=swiftshader` / `--enable-unsafe-swiftshader` for that reason.
  *
  * Usage:
- *   node screenshots.mjs --base-url=http://localhost:3000 [--out-dir=./out] [--wait=1500]
+ *   node screenshots.mjs --base-url=http://localhost:3712 [--out-dir=./out] [--wait=1500]
  *
  * Routes are configured in the PAGES array below (name, path, extra wait,
- * optional pre-screenshot action). Edit PAGES to add/remove screens.
+ * optional pre-screenshot action). Viewports are in VIEWPORTS. Edit either
+ * to add/remove screens or sizes.
  */
 import { chromium } from "playwright";
 import { mkdir } from "node:fs/promises";
@@ -40,7 +44,7 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-const baseUrl = args["base-url"] || process.env.BASE_URL || "http://localhost:3000";
+const baseUrl = args["base-url"] || process.env.BASE_URL || "http://localhost:3712";
 const outDir = args["out-dir"] || "./docs/assets/screenshots";
 const defaultWait = Number(args.wait || 1500);
 
@@ -49,25 +53,25 @@ const defaultWait = Number(args.wait || 1500);
 // (e.g. to dismiss the attract-mode title screen or nudge into gameplay).
 const PAGES = [
   { name: "menu", path: "/#/menu", wait: 1000 },
-  {
-    name: "attract",
-    path: "/#/attract",
-    wait: 6000, // let it settle past the 5s "title" phase into "demo"
-  },
-  {
-    name: "gameplay-2p",
-    path: "/#/game?mode=2p",
-    wait: 2500,
-  },
-  { name: "leaderboard", path: "/#/leaderboard", wait: 1500 },
+  { name: "game", path: "/#/game?mode=2p", wait: 2500 },
+  { name: "hall-of-fame", path: "/#/leaderboard?tab=fame", wait: 1500 },
+  { name: "hall-of-shame", path: "/#/leaderboard?tab=shame", wait: 1500 },
 ];
 
-async function shootOne(browser, colorScheme, page404) {
+// name is used in the output filename; width/height are CSS pixels.
+const VIEWPORTS = [
+  { name: "desktop", width: 1440, height: 900 },
+  { name: "phone", width: 844, height: 390 }, // phone held landscape
+];
+
+async function shootOne(browser, viewport) {
   const results = [];
   for (const p of PAGES) {
     const context = await browser.newContext({
-      viewport: { width: 1280, height: 800 },
-      colorScheme,
+      viewport: { width: viewport.width, height: viewport.height },
+      colorScheme: "dark",
+      hasTouch: viewport.name === "phone",
+      isMobile: viewport.name === "phone",
     });
     const pg = await context.newPage();
     const url = new URL(p.path, baseUrl).toString();
@@ -84,7 +88,7 @@ async function shootOne(browser, colorScheme, page404) {
         console.error(`[warn] action failed for ${p.name}: ${err.message}`);
       }
     }
-    const file = path.join(outDir, `${p.name}-${colorScheme}.png`);
+    const file = path.join(outDir, `${p.name}-${viewport.name}.png`);
     await pg.screenshot({ path: file });
     results.push(file);
     console.log(`saved ${file}`);
@@ -109,9 +113,9 @@ async function main() {
   });
 
   try {
-    for (const scheme of ["light", "dark"]) {
-      console.log(`--- capturing colorScheme=${scheme} ---`);
-      await shootOne(browser, scheme);
+    for (const viewport of VIEWPORTS) {
+      console.log(`--- capturing viewport=${viewport.name} (${viewport.width}x${viewport.height}) ---`);
+      await shootOne(browser, viewport);
     }
   } finally {
     await browser.close();

@@ -24,5 +24,5 @@ The initial build is committed and runnable. Attract mode, 1P vs 5 AI levels, 2P
 
 - No accounts service, OAuth, or cross-device login. Email is the unique key; device-local storage carries the session.
 - No Postgres adapter in this build (the Drizzle layer would support it, but it is not wired up).
-- No WebSocket / real-time multiplayer. 2P is strictly local-couch.
+- No WebSocket / real-time multiplayer. 2P is strictly local-couch. Scoped (not built) — see [online-play-scope.md](./online-play-scope.md).
 - No social-graph features (no following, no sharing a profile URL).

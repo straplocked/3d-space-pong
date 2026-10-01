@@ -8,7 +8,7 @@ For people who want to play the game or run it on their own machine. No code req
 - **[Controls](./controls.md)** — keyboard and touch.
 - **[Game modes](./game-modes.md)** — 1P vs AI, 2P local.
 - **[AI difficulty](./ai-difficulty.md)** — who the five AI levels really are.
-- **[The leaderboard](./leaderboard-guide.md)** — the Hall of Shame, badges, what the columns mean.
+- **[The leaderboards](./leaderboard-guide.md)** — Hall of Fame and Hall of Shame tabs, badges, what the columns mean.
 - **[Self-hosting](./self-hosting.md)** — docker compose, Unraid, environment variables.
 
 ## TL;DR

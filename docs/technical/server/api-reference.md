@@ -78,8 +78,8 @@ Source: [packages/server/src/routes/leaderboard.ts](../../../packages/server/src
 
 | `sort` value | Meaning | `HAVING` filter |
 | --- | --- | --- |
-| `wins` | Most wins first (tie-break: fewer losses, more games). | — |
-| `losses` | **Hall of Shame default.** Most losses first. | — |
+| `wins` | **Hall of Fame tab.** Most wins first (tie-break: fewer losses, more games). | — |
+| `losses` | **Hall of Shame tab (default).** Most losses first. | — |
 | `ratio` | Best wins/losses ratio. | `totalGames >= 5` (avoids one-game flukes). |
 | `shortest_loss` | Fastest loss ascending. | `shortestLossMs IS NOT NULL`. |
 | `rookie_victims` | Players who've lost at least one Rookie match. | `lostToRookie = 1`. |

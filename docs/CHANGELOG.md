@@ -4,6 +4,44 @@ Dated log of documentation changes, one entry per DOC_UPDATE run. See [../DOC_UP
 
 ---
 
+## Run #4 — 2026-09-30
+
+**Hall of Fame leaderboard tab, Unraid template + non-colliding default port, dark-only decision documented, online-play scoping (research only).**
+
+Code changes this run documented:
+- `packages/web/src/ui/leaderboard.ts` — rewritten. Single Hall-of-Shame view replaced with a tabbed screen (🏆 Hall of Fame / 💀 Hall of Shame), reusing the `.leaderboard-tabs` CSS that already existed but was unused. `renderLeaderboard(root, params?)` now takes the route's `URLSearchParams`; `?tab=fame` selects Fame, anything else defaults to Shame. A `loadToken` counter discards a stale fetch if the tab is switched again before it resolves.
+- `packages/web/src/main.ts` — `/leaderboard` route now passes `params` through to `renderLeaderboard`.
+- `packages/web/src/ui/menu.ts` — "Hall of Shame" button renamed to "Leaderboards".
+- `packages/web/src/ui/gameOver.ts` — "View Leaderboard" now deep-links `?tab=fame` after a win, `?tab=shame` after a loss.
+- `packages/web/src/styles.css` — short-landscape (`max-height: 500px`) tweaks for `.leaderboard-tabs` (tighter margin, smaller button padding) so the tabs fit phones held sideways.
+- `packages/web/index.html` — added `<meta name="color-scheme" content="dark">`, formalizing the already-dark-only rendering (manifest `theme_color`/`background_color` already matched; no CSS light-mode branch exists or is planned).
+- `docker-compose.yml` — host port mapping changed from `3000:3000` to `3610:3000`. Container-internal port (`PORT` env, `EXPOSE`, healthcheck) is unchanged at `3000`.
+- `unraid/3d-space-pong.xml` — new. dockerMan Community Applications template: `ghcr.io/straplocked/3d-space-pong:latest`, WebUI on host `3610` → container `3000`, `/app/data` path mapping, icon, overview, support/project URLs, and the server's env vars as advanced config fields.
+- `scripts/screenshots.mjs` — rewritten for the dark-only decision: drops the light/dark pair capture (there's no light theme), adds a `VIEWPORTS` array (desktop 1440×900, phone-landscape 844×390) crossed with a `PAGES` array that now includes the two leaderboard tabs (`hall-of-fame`, `hall-of-shame`) in place of the old single `leaderboard` entry; phone viewport also emulates touch (`hasTouch`/`isMobile`) for a more realistic capture.
+- `docs/assets/screenshots/` — regenerated: `menu-{desktop,phone}.png`, `game-{desktop,phone}.png`, `hall-of-fame-{desktop,phone}.png`, `hall-of-shame-{desktop,phone}.png` (8 files). Old `-light`/`-dark` pairs and `menu-mobile-pwa.png` removed.
+
+Docs updated:
+- `docs/technical/web/ui-screens.md` — "Leaderboard" section rewritten for the tabbed screen (column differences per tab, badge behavior, empty-state copy, game-over deep-link behavior); "Menu" section's button list updated.
+- `docs/technical/web/router-lifecycle.md` — `/leaderboard` route row notes the `params` pass-through.
+- `docs/technical/server/api-reference.md` — sort-modes table notes `wins` is the Hall of Fame tab, `losses` the Hall of Shame tab (default).
+- `docs/technical/server/environment.md` — Compose section's port mapping updated to `3610:3000`; new "Unraid template" section describing `unraid/3d-space-pong.xml`.
+- `docs/technical/architecture.md` — PWA paragraph gains a note on the dark-only decision and the three places it's enforced (manifest, `theme-color` meta, `color-scheme` meta).
+- `docs/leadership/product-overview.md` — "Main menu" bullet renamed to Leaderboards; "Leaderboard semantics" section rewritten for both tabs and the win/loss-aware deep link; new "Dark-only (no light theme)" section documenting the decision.
+- `docs/leadership/operational-footprint.md` — network bullet updated to the host/container port split.
+- `docs/leadership/executive-summary.md` — out-of-scope WebSocket/multiplayer bullet now points at the new scoping doc.
+- `docs/leadership/online-play-scope.md` — **new**. Research-only scoping doc: current engine/trust baseline, three options (WebRTC P2P + signalling, authoritative WebSocket server, rooms/matchmaking), a trade-off table, and a phased recommendation (start with P2P if pursued at all; escalate to an authoritative server only if online results should feed the same Hall of Fame / Hall of Shame leaderboard). No code.
+- `docs/leadership/README.md` — links the new online-play-scope page.
+- `docs/user/leaderboard-guide.md` — rewritten for both tabs (columns, badges, empty states, which tab game-over sends you to).
+- `docs/user/README.md`, `docs/user/getting-started.md` — "Hall of Shame" menu references updated to "Leaderboards".
+- `docs/user/self-hosting.md` — port references updated to the `3610` host default (container stays `3000`); new Unraid-template paragraph.
+- Root `README.md` — Screenshots section rewritten for the dark-only, desktop+phone-landscape capture set; self-host / Unraid / environment-variables sections updated for the `3610` default host port; project-layout tree gains `unraid/`.
+
+No new API endpoints or schemas — the Hall of Fame tab uses the `sort=wins` leaderboard query that already existed server-side (added before this run; the UI simply hadn't exposed it). No new doc pages except `online-play-scope.md`.
+
+Threshold notes: no file crossed a split threshold this run. `packages/web/src/ui/leaderboard.ts` grew from 99 to 158 lines (still well under 300, no split needed). `main.ts` stays at 402 lines (net zero change from this run's edit).
+
+---
+
 ## Run #3 — 2026-09-30
 
 **Mobile/PWA hardening: app-wide landscape guard, lazy three.js engine, wake lock, install button, engine error screen.**

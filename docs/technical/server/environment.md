@@ -73,10 +73,14 @@ Everything else falls through to `@fastify/static`'s normal mime-based content-t
 ## Compose
 
 See [docker-compose.yml](../../../docker-compose.yml). One service `app`:
-- Port mapping `3000:3000`.
+- Port mapping `3610:3000` (host:container) — `3610` is the documented default host port, chosen to avoid colliding with other self-hosted apps that default to `3000`. The container's internal port is unchanged at `3000` (`PORT` env above); only the host side moved.
 - Bind mount `./data → /app/data` (persists the SQLite file on the host).
 - Environment block mirrors the Dockerfile's `ENV` so overriding at runtime is obvious.
 - `restart: unless-stopped` and the healthcheck for orchestration-aware restart behavior.
+
+## Unraid template
+
+See [unraid/3d-space-pong.xml](../../../unraid/3d-space-pong.xml) — a dockerMan Community Applications template: `Repository` points at `ghcr.io/straplocked/3d-space-pong:latest`, the `WebUI` field is `http://[IP]:[PORT:3610]/`, and `Config` entries expose the WebUI port (host `3610` → container `3000`), the `/app/data` path mapping, and the same env vars as `docker-compose.yml` (`PORT`, `HOST`, `DB_DRIVER`, `DB_URL`, `LOG_LEVEL`) as advanced variables so the common path only needs the port and the data path. Not wired into any Unraid Community Applications feed — install by pointing Unraid's "template URL" field at the raw file, or copy it to `/boot/config/plugins/dockerMan/templates-user/` on the Unraid box.
 
 ## Data directory
 

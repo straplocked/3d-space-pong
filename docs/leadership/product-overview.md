@@ -9,7 +9,7 @@ Landing page is **attract mode** — a looping three-phase arcade demo (title �
 Four actions plus an audio toggle:
 - **Fight The Machine** — 1P vs AI, five difficulty levels.
 - **Betray a Friend** — 2P local couch play, no signup.
-- **Hall of Shame** — view the leaderboard.
+- **Leaderboards** — a tabbed screen with the Hall of Fame (most wins) and the Hall of Shame (most losses).
 - **GFX Tuning** — expose a live dev panel over an AI-vs-AI demo so anyone can tune the look.
 
 ### First match
@@ -49,9 +49,17 @@ Designed to feel like an arcade cabinet. If the user sits on a menu without inte
 
 ## Leaderboard semantics
 
-The server supports five sort modes — wins, losses, win/loss ratio, shortest loss, and "rookie victims only." The current UI exposes the losses view (Hall of Shame) only. Badges for **ROOKIE VICTIM** and **LEGEND SLAYER** are computed server-side from the unfiltered match history, so filtering doesn't hide them.
+The server supports five sort modes — wins, losses, win/loss ratio, shortest loss, and "rookie victims only." The UI exposes two of them as tabs on one screen: **Hall of Fame** (wins) and **Hall of Shame** (losses) — the other three remain API-only, a UI change away. Badges for **ROOKIE VICTIM** and **LEGEND SLAYER** are computed server-side from the unfiltered match history and shown on both tabs, so filtering doesn't hide them.
+
+Winning a match sends the player straight to the Fame tab from the game-over screen's "View Leaderboard" button; losing sends them to Shame — a small contextual touch in keeping with the "keeps receipts" tone.
 
 See [../user/leaderboard-guide.md](../user/leaderboard-guide.md) for the player-facing write-up, and [../technical/server/leaderboard-queries.md](../technical/server/leaderboard-queries.md) for the SQL.
+
+## Dark-only (no light theme)
+
+The game ships with one fixed dark neon theme. There is no light mode, and none is planned: the aesthetic (phosphor-on-black arcade cabinet) is the product, not a default that happens to need a light alternative. This was an explicit decision, not an oversight — see [tech-stack.md](./tech-stack.md) for the broader "why" behind the visual choices.
+
+What this means in practice: the PWA manifest's `theme_color`/`background_color`, the page's `<meta name="theme-color">`, and a `<meta name="color-scheme" content="dark">` tag all agree, so installing the app, viewing it on an OS with a light system theme, or looking at the browser's own chrome (scrollbars, form controls, the "reader" UI) never produces a mismatched light flash around the dark game. See [../technical/architecture.md](../technical/architecture.md#runtime-topology) (the PWA paragraph) for where that's wired up.
 
 ## Mobile experience
 

@@ -2465,6 +2465,15 @@ body::after {
     white-space: nowrap;
   }
 
+  .leaderboard-tabs {
+    margin-bottom: 0.6rem;
+  }
+
+  .leaderboard-tabs button {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.68rem;
+  }
+
   .leaderboard-table {
     font-size: 0.72rem;
   }

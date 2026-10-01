@@ -23,7 +23,7 @@ export function renderMenu(root: HTMLElement): void {
       <p class="tagline">A pong game that keeps receipts.</p>
       <button class="btn" data-action="ai">Fight The Machine</button>
       <button class="btn" data-action="2p">Betray a Friend</button>
-      <button class="btn btn-secondary" data-action="leaderboard">Hall of Shame</button>
+      <button class="btn btn-secondary" data-action="leaderboard">Leaderboards</button>
       <hr class="menu-divider" />
       <div class="menu-row">
         <button class="btn btn-tertiary" data-action="tuning">GFX Tuning</button>

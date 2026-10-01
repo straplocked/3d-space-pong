@@ -28,7 +28,7 @@ Defined in [main.ts](../../../packages/web/src/main.ts):
 | `/attract` | Pause idle watcher. Await the engine chunk (`engineOrNull()`), then mount `engine.startAttract({ root, canvas, onDismiss: () => go("/menu") })`. Construction failures render the engine-error card. |
 | `/menu` | Resume idle watcher. Mount `renderMenu(appRoot)`. |
 | `/signup` | Resume idle watcher. Mount `renderSignup(appRoot)` — handles form + difficulty picker in one screen. |
-| `/leaderboard` | Resume idle watcher. `renderLeaderboard(appRoot)`. |
+| `/leaderboard` | Resume idle watcher. `renderLeaderboard(appRoot, params)` — `params` carries the optional `?tab=fame\|shame`. |
 | `/tuning` | Pause idle watcher. Await the engine chunk. Construct a demo `engine.PongGame` (`pro` vs `expert`) — on failure render the engine-error card and stop. Show the thin overlay (`[ GFX TUNING MODE ]` + back button), mount `engine.mountDevPanel`. |
 | `/game` | Pause idle watcher. Resolve mode from `?mode` and `?difficulty`. Redirect to `/signup` if AI mode but no signed-in user. Enter mobile fullscreen + landscape (**before** any `await`). Await the engine chunk. Mount HUD. Construct `engine.PongGame` (failure → engine-error card). Acquire wake lock, disable parallax on touch, subscribe to visibility + orientation-guard changes. Start; pause immediately if the orientation guard is blocking. Await result, then release the wake lock / listeners and re-enable parallax. If not aborted and AI mode → `api.recordMatch(...)`. Teardown, then `renderGameOver(...)`. |
 | *not-found* | Resume idle watcher. `renderNotFound(appRoot)`. |

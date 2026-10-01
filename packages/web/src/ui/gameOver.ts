@@ -54,7 +54,9 @@ export function renderGameOver(root: HTMLElement, props: GameOverProps): void {
     ?.addEventListener("click", () => go("/menu"));
   root
     .querySelector('[data-action="leaderboard"]')
-    ?.addEventListener("click", () => go("/leaderboard"));
+    ?.addEventListener("click", () =>
+      go(`/leaderboard?tab=${props.outcome === "win" ? "fame" : "shame"}`),
+    );
 }
 
 function escapeHtml(s: string): string {

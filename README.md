@@ -18,28 +18,30 @@ Open-source 3D Space Pong, built with [three.js](https://threejs.org/) for the g
 
 ## Screenshots
 
-Captured from a real headless-Chromium run of the built app (server serving the built web bundle), in both light and dark `prefers-color-scheme`. The game currently renders the same fixed dark neon theme either way — it doesn't read `prefers-color-scheme` yet — so the light/dark pairs below look identical on purpose; that's a known gap, not a capture bug.
+The game is **dark-only by design** (see [docs/leadership/product-overview.md](docs/leadership/product-overview.md#dark-only-no-light-theme) for the decision) — the manifest, `theme-color`, and `color-scheme: dark` all agree, so there's nothing to show in a "light" variant. Captured from a real headless-Chromium run of the built app at desktop (1440×900) and phone-landscape (844×390) viewports.
 
-| Menu | Attract mode (demo) |
+| Menu | Gameplay (2P local) |
 | --- | --- |
-| ![Menu](docs/assets/screenshots/menu-light.png) | ![Attract mode](docs/assets/screenshots/attract-light.png) |
+| ![Menu](docs/assets/screenshots/menu-desktop.png) | ![Gameplay](docs/assets/screenshots/game-desktop.png) |
 
-| Gameplay (2P local) | Hall of Shame |
+| Hall of Fame | Hall of Shame |
 | --- | --- |
-| ![Gameplay](docs/assets/screenshots/gameplay-2p-light.png) | ![Leaderboard](docs/assets/screenshots/leaderboard-light.png) |
+| ![Hall of Fame](docs/assets/screenshots/hall-of-fame-desktop.png) | ![Hall of Shame](docs/assets/screenshots/hall-of-shame-desktop.png) |
 
-More PNGs (including the `-dark` variants) live under [`docs/assets/screenshots/`](docs/assets/screenshots/). Regenerate them with [`scripts/screenshots.mjs`](scripts/screenshots.mjs):
+Phone-landscape (`-phone.png`) captures live alongside these under [`docs/assets/screenshots/`](docs/assets/screenshots/). Regenerate everything with [`scripts/screenshots.mjs`](scripts/screenshots.mjs) — run the app first, then:
 
 ```bash
-# with the app already running at BASE_URL
+# with the app already running at BASE_URL (e.g. `node packages/server/dist/index.js`)
 docker run --rm --network host \
-  -v "$PWD/scripts:/work/scripts:ro" \
+  -v "$PWD/scripts:/scripts:ro" \
   -v "$PWD/docs/assets/screenshots:/out" \
-  -w /work \
-  mcr.microsoft.com/playwright:v1.55.0-noble \
-  bash -c "npm init -y >/dev/null && npm install --no-save playwright@1.55.0 >/dev/null && \
-    node /work/scripts/screenshots.mjs --base-url=http://localhost:3000 --out-dir=/out"
+  mcr.microsoft.com/playwright:v1.55.1-noble \
+  bash -c "mkdir -p /work && cd /work && npm install --no-save --cache /tmp/npmcache playwright@1.55.1 && \
+    cp /scripts/screenshots.mjs /work/screenshots.mjs && \
+    node /work/screenshots.mjs --base-url=http://localhost:3712 --out-dir=/out"
 ```
+
+(The `cp` step works around the Playwright image's npm occasionally tripping over a stale `idealTree` lock when `node_modules` and the script live in different mounted volumes — installing and running from the same writable directory avoids it.)
 
 ## Install as an app
 
@@ -70,6 +72,7 @@ See [docs/user/getting-started.md](docs/user/getting-started.md#installing-as-an
 │   ├── shared/   # zod schemas + types shared by client and server
 │   ├── server/   # Fastify API + Drizzle ORM + SQLite migrations
 │   └── web/      # Vite + three.js + parallax.js front-end
+├── unraid/       # Unraid Community Applications template
 ├── Dockerfile
 ├── docker-compose.yml
 └── README.md
@@ -131,24 +134,28 @@ pnpm db:generate
 docker compose up --build -d
 ```
 
-Then open **http://<your-server>:3000**. The SQLite file is persisted in `./data/pong.db` via a bind mount, so `docker compose down && docker compose up` keeps your data.
+Then open **http://<your-server>:3610**. The default host port is `3610` (the container's internal port stays `3000`) — chosen to avoid colliding with other self-hosted apps that default to `3000`; remap the left side of `ports:` in `docker-compose.yml` if you'd rather use something else. The SQLite file is persisted in `./data/pong.db` via a bind mount, so `docker compose down && docker compose up` keeps your data.
 
 ### Unraid
 
+A ready-made Community Applications template lives at [`unraid/3d-space-pong.xml`](unraid/3d-space-pong.xml) (image `ghcr.io/straplocked/3d-space-pong:latest`, WebUI on host port `3610` → container `3000`, `/app/data` path). Point Unraid's template install flow at it, or:
+
 1. Clone this repo to a folder on your server (e.g. `/mnt/user/appdata/3d-space-pong`).
 2. From that folder, run `docker compose up -d --build`.
-3. Map host port `3000` (or whatever you prefer) and bind-mount `./data` to keep the database between container restarts.
+3. Map host port `3610` (or whatever you prefer) to container port `3000`, and bind-mount `./data` to keep the database between container restarts.
 4. Optionally put it behind your reverse proxy of choice.
 
 ### Environment variables
 
 | Variable     | Default                       | Notes                                       |
 | ------------ | ----------------------------- | ------------------------------------------- |
-| `PORT`       | `3000`                        | HTTP port the server listens on             |
+| `PORT`       | `3000`                        | HTTP port the server listens on **inside the container** |
 | `HOST`       | `0.0.0.0`                     | Bind address                                |
 | `DB_DRIVER`  | `sqlite`                      | Currently only `sqlite` is implemented      |
 | `DB_URL`     | `file:./data/pong.db`         | SQLite file path (use `file:` prefix)       |
 | `LOG_LEVEL`  | `info`                        | Pino log level                              |
+
+`PORT` is the container's internal listening port and stays `3000` — it's the *host* port mapping (left side of `docker-compose.yml`'s `ports:`, default `3610`) that you'd change to avoid a collision on your network; see [Unraid](#unraid) above.
 
 Postgres support is wired into the schema layer but not yet bundled — open an issue if you need it.
 
