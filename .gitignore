@@ -37,5 +37,10 @@ pnpm-debug.log*
 # Vite cache
 .vite/
 
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+
 # Claude Code worktrees
 .claude/worktrees/

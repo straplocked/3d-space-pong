@@ -13,10 +13,12 @@
     "build": "pnpm --filter @3d-space-pong/shared run build && pnpm --filter @3d-space-pong/server run build && pnpm --filter @3d-space-pong/web run build",
     "typecheck": "pnpm --filter @3d-space-pong/shared run build && pnpm -r run typecheck",
     "test": "pnpm --filter @3d-space-pong/shared run build && vitest run",
+    "test:e2e": "playwright test",
     "db:generate": "pnpm --filter @3d-space-pong/server run db:generate",
     "db:migrate": "pnpm --filter @3d-space-pong/server run db:migrate"
   },
   "devDependencies": {
+    "@playwright/test": "1.55.1",
     "jsdom": "^25.0.1",
     "typescript": "^5.5.4",
     "vitest": "^2.1.9"

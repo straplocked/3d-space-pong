@@ -9,6 +9,7 @@ import { Input } from "./Input.js";
 import { AIController } from "./AI.js";
 import { isTouchDevice } from "../ui/fullscreen.js";
 import { sfx } from "../audio/sound.js";
+import { reportFrame } from "../testHooks.js";
 
 export type GameMode =
   | { kind: "ai"; difficulty: Difficulty }
@@ -819,6 +820,7 @@ export class PongGame {
     this.updateBall(dt);
     this.updateDust(dt);
     this.composer.render();
+    reportFrame(this.leftScore, this.rightScore);
   }
 
   private updatePaddles(dt: number, nowSeconds: number): void {

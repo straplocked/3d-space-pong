@@ -4,6 +4,22 @@ Dated log of documentation changes, one entry per DOC_UPDATE run. See [../DOC_UP
 
 ---
 
+## Run #7 — 2026-10-01
+
+**Playwright browser-test suite for the game loop, rotate guard, wake lock and fullscreen (task 842).**
+
+- `e2e/` — new Playwright suite (`@playwright/test@1.55.1`, pinned to match the `mcr.microsoft.com/playwright:v1.55.1-noble` image): `menu-and-match.spec.ts`, `rotate.spec.ts`, `visibility-pause.spec.ts`, `wake-lock.spec.ts`, `fullscreen.spec.ts`, `leaderboard-tabs.spec.ts`, plus shared helpers in `e2e/support/helpers.ts`.
+- `playwright.config.ts` — new. Runs against a real build via `webServer` (`node packages/server/dist/index.js` on port 3713, a fresh temp-file SQLite `DB_URL` per run); Chromium launched with `--use-gl=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist --disable-gpu-sandbox` for a real headless WebGL context.
+- `packages/web/src/testHooks.ts` — new. `window.__E2E_HOOKS__.frame`, a test-only, inert-by-default frame counter reported from `PongGame.tick()` so a spec can assert the render loop is actually advancing.
+- `packages/web/src/game/PongGame.ts` — one-line call to `reportFrame()` at the end of `tick()`.
+- `package.json` — added `test:e2e` script and `@playwright/test` devDependency.
+- `.gitignore` — `playwright-report/`, `test-results/`, `blob-report/`.
+- `.github/workflows/ci.yml` — new `e2e` job (runs after `gate`, inside the pinned Playwright container, `pnpm build` then `pnpm test:e2e`, uploads the HTML report). `publish` still depends only on `gate` — `e2e` is not added to its `needs` list yet, pending a few green runs in actual CI.
+- Verified locally (twice, including a `--repeat-each=2` stability pass) inside the `mcr.microsoft.com/playwright:v1.55.1-noble` container: all 8 specs pass with real (swiftshader) WebGL every time — the "`Can't Start Game`" fallback path exists in the specs but was never exercised.
+
+Docs updated:
+- `docs/technical/testing.md` — new "Browser tests (Playwright)" section (how `webServer` is wired, the swiftshader launch flags, the `__E2E_HOOKS__` test hook, per-spec coverage table, how to run the suite locally via the pinned container); "Not covered" section for Vitest narrowed now that rotate/wakeLock/PongGame have Playwright coverage; CI section rewritten to describe both `gate` and the new `e2e` job (and to drop the stale "Test step is `continue-on-error`" line, which task 841 already resolved last run).
+
 ## Run #6 — 2026-10-01
 
 **Fullscreen starts attract mode and stays on (task 847); CI Test step is a hard gate (task 841).**
