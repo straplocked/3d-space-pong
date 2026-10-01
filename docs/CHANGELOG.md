@@ -4,6 +4,30 @@ Dated log of documentation changes, one entry per DOC_UPDATE run. See [../DOC_UP
 
 ---
 
+## Run #4 — 2026-09-30
+
+**Fix local build skipping DB migrations; add a baseline Vitest test suite.**
+
+Code changes this run documented:
+- `packages/server/scripts/copy-migrations.js` — new. Copies `src/db/migrations` → `dist/db/migrations` after `tsc`, since `tsc` only emits compiled `.ts` files and drops the `.sql`/journal files. Run as the second half of the server's `build` script (`tsc -p tsconfig.json && node scripts/copy-migrations.js`).
+- `Dockerfile` — the runtime stage's explicit `COPY --from=build .../src/db/migrations .../dist/db/migrations` removed; redundant now that the server's own `build` puts migrations in `dist` directly, so a plain `COPY .../server/dist ./packages/server/dist` already has them.
+- `packages/server/src/app.ts` — new. `buildApp(opts?: { serveWeb?: boolean })` builds (but doesn't start) the Fastify instance: logging, CORS, routes, and optional static web-bundle serving + SPA fallback. Split out of `index.ts` so tests can `.inject()` against it without also running migrate/seed/listen. Logger level defaults to `silent` when `NODE_ENV=test` (unless `LOG_LEVEL` is set), to keep test output clean.
+- `packages/server/src/index.ts` — slimmed to the production entrypoint: run migrations, run `seedIfEmpty()`, call `buildApp()`, listen.
+- `vitest.config.ts` (root), root `package.json` — `vitest` + `jsdom` devDependencies, new `test` script (`pnpm --filter @3d-space-pong/shared run build && vitest run`). Single flat config; web DOM tests opt into jsdom per-file via a `// @vitest-environment jsdom` pragma rather than a per-package Vitest workspace.
+- `packages/shared/test/schemas.test.ts`, `packages/server/test/{helpers,health,signup,matches,leaderboard}.test.ts`, `packages/web/test/{AI,Input,state,fullscreen}.test.ts` — new. 69 tests total. Server tests run Fastify `.inject()` against a real temporary SQLite file with real Drizzle migrations applied (`test/helpers.ts`'s `setUpTestApp()`), not a mock.
+- `.github/workflows/ci.yml` — `gate` job gets a `Test` step (`pnpm test`) between `Typecheck` and `Build`, marked `continue-on-error: true` with a `TODO` to remove it once the suite has run green in CI a few times (it was only verified locally this run); `publish` still depends only on `gate` completing, unaffected either way.
+
+Docs updated:
+- `docs/technical/testing.md` — new page: how to run the suite, config, what's covered per package (and what isn't, and why), CI wiring.
+- `docs/technical/README.md`, `docs/README.md` — link the new testing page.
+- `docs/technical/server/seed-and-migrations.md` — migrations section rewritten: `build` now copies migrations itself, so the "silently skipped in a misconfigured container" risk is specifically about the `copy-migrations.js` step now, not an unexplained Dockerfile-only fixup.
+- `docs/technical/server/environment.md` — Dockerfile stage 3/4 description updated to match (migrations arrive via the server's own build, not a dedicated Dockerfile `COPY`).
+- `docs/technical/server/README.md` — entry point section split into `app.ts` (`buildApp()`) vs. `index.ts`; scripts table `build` row and footnote updated.
+- `docs/technical/web/ai.md` — one-line pointer to the new `AI.test.ts`.
+- `docs/leadership/tech-stack.md` — `vitest` added to the "Build tooling" list.
+
+No new routes, schemas, or Docker stages. No source file crossed the ~300-line split threshold this run.
+
 ## Run #3 — 2026-09-30
 
 **Mobile/PWA hardening: app-wide landscape guard, lazy three.js engine, wake lock, install button, engine error screen.**

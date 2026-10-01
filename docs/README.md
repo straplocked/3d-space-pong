@@ -29,3 +29,4 @@ Some subsystems (the 3D game engine, the dev panel) are large enough that their 
 | Database | [packages/server/src/db/](../packages/server/src/db/) | [Database schema](./technical/server/database-schema.md) |
 | Shared types | [packages/shared/src/](../packages/shared/src/) | [Schemas reference](./technical/shared/schemas-reference.md) |
 | Humor copy | [packages/web/src/content/quips.ts](../packages/web/src/content/quips.ts) | [Content / quips](./technical/web/content-quips.md) |
+| Automated tests | [packages/*/test/](../packages/) | [Testing](./technical/testing.md) |

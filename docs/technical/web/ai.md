@@ -2,7 +2,7 @@
 
 Source: [packages/web/src/game/AI.ts](../../../packages/web/src/game/AI.ts).
 
-The AI is one class (`AIController`) plus a lookup table of five profiles (`DIFFICULTY_PROFILES`). Pure logic — no three.js imports — so it's trivially unit-testable.
+The AI is one class (`AIController`) plus a lookup table of five profiles (`DIFFICULTY_PROFILES`). Pure logic — no three.js imports — so it's trivially unit-testable. Covered by [packages/web/test/AI.test.ts](../../../packages/web/test/AI.test.ts) — see [Testing](../testing.md).
 
 ## `DifficultyProfile`
 

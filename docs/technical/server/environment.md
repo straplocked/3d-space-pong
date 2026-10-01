@@ -36,7 +36,7 @@ pnpm --filter @3d-space-pong/shared run build \
   && pnpm --filter @3d-space-pong/web run build \
   && pnpm --filter @3d-space-pong/server run build
 ```
-Order matters — shared must exist before web/server can import it.
+Order matters — shared must exist before web/server can import it. The server's own `build` script is `tsc -p tsconfig.json && node scripts/copy-migrations.js` — the second half copies `src/db/migrations` into `dist/db/migrations` (see [seed-and-migrations.md](./seed-and-migrations.md)), since `tsc` doesn't emit non-TS files on its own. This runs identically here and in a plain local `pnpm build`.
 
 ### 4. `runtime`
 Slim image. Installs only the server's production deps via the pnpm filter arrow (`@3d-space-pong/server...`), copies dist artifacts, and sets:
@@ -49,10 +49,7 @@ ENV NODE_ENV=production
     DB_URL=file:/app/data/pong.db
 ```
 
-The migrations folder is copied explicitly from `src/` into `dist/` because `tsc` doesn't copy non-TS files:
-```dockerfile
-COPY --from=build /app/packages/server/src/db/migrations ./packages/server/dist/db/migrations
-```
+The migrations folder is already inside `/app/packages/server/dist` by the time this stage copies it — the server's `build` script put it there (see stage 3 above) — so the runtime stage just copies the whole `dist` directory and needs no separate migrations copy step.
 
 Other runtime specifics:
 - `VOLUME ["/app/data"]` — declares the DB directory as a mount target.

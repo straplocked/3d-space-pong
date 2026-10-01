@@ -5,6 +5,7 @@ For developers reading or changing the code.
 ## Start here
 
 - **[Architecture overview](./architecture.md)** — monorepo layout, data flow, build graph, runtime topology.
+- **[Testing](./testing.md)** — Vitest setup, what's covered per package, how CI runs it.
 
 ## By package
 
