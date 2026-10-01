@@ -45,11 +45,12 @@ COPY packages/server/package.json ./packages/server/
 COPY packages/web/package.json ./packages/web/
 RUN pnpm install --prod --frozen-lockfile=false --filter @3d-space-pong/server...
 
-# Copy compiled shared, compiled server, and built web bundle.
+# Copy compiled shared, compiled server (migrations included — the
+# server's own `build` script copies them into dist, see
+# scripts/copy-migrations.js), and built web bundle.
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist
 COPY --from=build /app/packages/shared/package.json ./packages/shared/package.json
 COPY --from=build /app/packages/server/dist ./packages/server/dist
-COPY --from=build /app/packages/server/src/db/migrations ./packages/server/dist/db/migrations
 COPY --from=build /app/packages/web/dist ./packages/web/dist
 
 VOLUME ["/app/data"]
