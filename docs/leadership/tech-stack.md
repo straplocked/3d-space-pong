@@ -60,3 +60,4 @@ packages/
 - `vite` for the web build.
 - `drizzle-kit` for migration generation (`pnpm db:generate`).
 - `tsx` for dev-mode server hot-reload (`pnpm dev`).
+- `vitest` for the automated test suite (`pnpm test`) — shared schema validation, server API tests against a real temp SQLite DB, and pure web game-logic tests.

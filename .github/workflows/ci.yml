@@ -34,6 +34,14 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # TODO: drop `continue-on-error` once this has run green in CI a few
+      # times (the suite is new as of this commit and has only been run
+      # locally). Until then a flaky/misconfigured CI environment can't
+      # block `publish`, which depends only on this job completing.
+      - name: Test
+        run: pnpm test
+        continue-on-error: true
+
       - name: Build
         run: pnpm build
 
