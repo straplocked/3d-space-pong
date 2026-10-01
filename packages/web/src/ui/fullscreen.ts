@@ -9,8 +9,32 @@
  *     fall back to showing a "please rotate" overlay when the user is in
  *     portrait during a match.
  *   - On exit (game over, quit, route change) we release the lock and
- *     exit fullscreen.
+ *     exit fullscreen — but only if the game entered fullscreen itself.
+ *     Fullscreen the player turned on (menu toggle, GO FULLSCREEN offer)
+ *     is theirs and stays on across every route change.
  */
+
+/** True while fullscreen is on because a match started it, not the player. */
+let autoEnteredForGameplay = false;
+
+/**
+ * True when the current fullscreen session was started automatically by
+ * enterGameplayViewport() (so leaving the game should release it), false
+ * when the player chose fullscreen themselves.
+ */
+export function isFullscreenAutoEntered(): boolean {
+  return autoEnteredForGameplay && isFullscreenActive();
+}
+
+if (typeof document !== "undefined") {
+  // Escape / browser UI / system back can drop fullscreen behind our back;
+  // a stale flag would make the next manual fullscreen look automatic.
+  const resetIfExited = () => {
+    if (!isFullscreenActive()) autoEnteredForGameplay = false;
+  };
+  document.addEventListener("fullscreenchange", resetIfExited);
+  document.addEventListener("webkitfullscreenchange", resetIfExited);
+}
 
 export function isTouchDevice(): boolean {
   return (
@@ -93,7 +117,13 @@ export function unlockOrientation(): void {
 /** Convenience: call on game start from a user gesture to request both. */
 export async function enterGameplayViewport(): Promise<void> {
   if (!isTouchDevice()) return;
-  await enterFullscreen();
+  if (!isFullscreenActive()) {
+    // Set before the await: the fullscreenchange listeners (main.ts routes a
+    // manual fullscreen into attract mode) fire before enterFullscreen resolves.
+    autoEnteredForGameplay = true;
+    await enterFullscreen();
+    if (!isFullscreenActive()) autoEnteredForGameplay = false;
+  }
   // Fullscreen transition can take a tick before orientation lock works.
   await new Promise((r) => setTimeout(r, 60));
   await lockLandscape();
@@ -102,6 +132,9 @@ export async function enterGameplayViewport(): Promise<void> {
 /** Convenience: call when leaving gameplay. */
 export async function leaveGameplayViewport(): Promise<void> {
   if (!isTouchDevice()) return;
+  // Fullscreen the player chose stays on (and stays landscape) after a match.
+  if (!autoEnteredForGameplay) return;
+  autoEnteredForGameplay = false;
   unlockOrientation();
   await exitFullscreen();
 }
@@ -143,6 +176,8 @@ export function isInstalledDisplayMode(): boolean {
 
 /** Toggle fullscreen on <html>, swallowing any rejection (denied/blocked). */
 export async function toggleFullscreen(): Promise<void> {
+  // A manual toggle always makes fullscreen the player's own.
+  autoEnteredForGameplay = false;
   if (isFullscreenActive()) {
     await exitFullscreen();
   } else {

@@ -5,7 +5,13 @@ import {
   disableParallax,
   enableParallax,
 } from "./ui/parallax.js";
-import { defineRoute, defineNotFound, startRouter, go } from "./router.js";
+import {
+  defineRoute,
+  defineNotFound,
+  startRouter,
+  go,
+  currentPath,
+} from "./router.js";
 import { renderMenu } from "./ui/menu.js";
 import { renderSignup } from "./ui/signup.js";
 import { renderLeaderboard } from "./ui/leaderboard.js";
@@ -18,6 +24,8 @@ import {
   enterGameplayViewport,
   leaveGameplayViewport,
   isTouchDevice,
+  isFullscreenActive,
+  isFullscreenAutoEntered,
 } from "./ui/fullscreen.js";
 import { mountOrientationGuard } from "./ui/rotate.js";
 import { holdScreenAwake, type WakeLockHandle } from "./ui/wakeLock.js";
@@ -377,6 +385,20 @@ idleWatcher = startIdleWatcher({
     go("/attract");
   },
 });
+
+// Entering fullscreen from any non-match screen (the menu toggle or the
+// rotate overlay's GO FULLSCREEN) starts attract mode, so a fullscreen
+// session opens on the cabinet-style loop. Browser-level F11 fullscreen
+// does not fire fullscreenchange and is unaffected.
+// Fullscreen a match started for itself is left alone.
+const onFullscreenChange = () => {
+  if (!isFullscreenActive() || isFullscreenAutoEntered()) return;
+  const path = currentPath().split("?")[0];
+  if (path === "/game" || path === "/attract" || path === "/tuning") return;
+  go("/attract");
+};
+document.addEventListener("fullscreenchange", onFullscreenChange);
+document.addEventListener("webkitfullscreenchange", onFullscreenChange);
 
 // Unlock Web Audio on the first user gesture. iOS Safari requires this.
 const unlockAudio = () => {
